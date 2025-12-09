@@ -1,51 +1,37 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { User } from './User';
-import { Conversation } from './Conversation';
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-@Entity('messages')
-export class Message {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
-
-  @Column({ nullable: false })
-  senderId!: string;
-
-  @Column({ nullable: true })
-  conversationId?: string;
-
-  @Column({ type: 'text', nullable: true })
+export interface IMessage extends Document {
+  _id: mongoose.Types.ObjectId;
+  senderId: mongoose.Types.ObjectId;
+  conversationId?: mongoose.Types.ObjectId;
   text?: string;
-
-  @Column({ nullable: true })
   url?: string;
-
-  @Column({ nullable: true })
   fileName?: string;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
-
-  // Relations
-  @ManyToOne(() => User, (user) => user.sentMessages)
-  @JoinColumn({ name: 'senderId' })
-  sender!: User;
-
-  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
-  @JoinColumn({ name: 'conversationId' })
-  conversation?: Conversation;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
+  id: string;
 }
+
+const MessageSchema: Schema<IMessage> = new Schema(
+  {
+    senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    conversationId: { type: Schema.Types.ObjectId, ref: "Conversation" },
+    text: { type: String },
+    url: { type: String },
+    fileName: { type: String },
+    deletedAt: { type: Date, default: null },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+// Indexes for common queries
+MessageSchema.index({ conversationId: 1, createdAt: -1 });
+MessageSchema.index({ senderId: 1 });
+MessageSchema.index({ deletedAt: 1 });
+
+export const Message: Model<IMessage> = mongoose.model<IMessage>("Message", MessageSchema);

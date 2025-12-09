@@ -35,23 +35,23 @@ export class MessageController {
         return;
       }
 
-      const beforeNum = before ? parseInt(before as string) : undefined;
-      if (before && (isNaN(beforeNum!) || beforeNum! < 0)) {
+      const beforeStr = before ? (before as string) : undefined;
+      if (beforeStr && beforeStr.length !== 24) {
         res.status(400).json({
           success: false,
-          message: "Before must be a positive number",
+          message: "Before must be a valid MongoDB ObjectId",
         });
         return;
       }
 
-      const messages = await this.messageService.getConversationMessages(conversationId, limitNum, beforeNum);
+      const messages = await this.messageService.getConversationMessages(conversationId, limitNum, beforeStr);
 
       res.status(200).json({
         success: true,
         data: messages,
         pagination: {
           limit: limitNum,
-          before: beforeNum,
+          before: beforeStr,
           hasMore: messages.length === limitNum,
         },
       });

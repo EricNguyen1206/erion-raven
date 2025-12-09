@@ -1,57 +1,40 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-} from 'typeorm';
-import { User } from './User';
-import { Message } from './Message';
-import { Participant } from './Participant';
-import { ConversationType } from '@notify/types';
+import mongoose, { Schema, Document, Model } from "mongoose";
+import { ConversationType } from "@notify/types";
 
-@Entity('conversations')
-export class Conversation {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
-
-  @Column({ nullable: false })
-  name!: string;
-
-  @Column({ nullable: true })
+export interface IConversation extends Document {
+  _id: mongoose.Types.ObjectId;
+  name: string;
   avatar?: string;
-
-  @Column({ nullable: false })
-  ownerId!: string;
-
-  @Column({
-    type: 'enum',
-    enum: ConversationType,
-    default: ConversationType.GROUP,
-  })
-  type!: ConversationType;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
-
-  // Relations
-  @ManyToOne(() => User, (user) => user.ownedConversations)
-  @JoinColumn({ name: 'ownerId' })
-  owner!: User;
-
-  @OneToMany(() => Message, (message) => message.conversation)
-  messages!: Message[];
-
-  @OneToMany(() => Participant, (participant) => participant.conversation)
-  participants!: Participant[];
+  ownerId: mongoose.Types.ObjectId;
+  type: ConversationType;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
+  id: string;
 }
+
+const ConversationSchema: Schema<IConversation> = new Schema(
+  {
+    name: { type: String, required: true },
+    avatar: { type: String },
+    ownerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    type: {
+      type: String,
+      enum: Object.values(ConversationType),
+      default: ConversationType.GROUP,
+    },
+    deletedAt: { type: Date, default: null },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+// Indexes
+ConversationSchema.index({ ownerId: 1 });
+ConversationSchema.index({ deletedAt: 1 });
+ConversationSchema.index({ type: 1 });
+
+export const Conversation: Model<IConversation> = mongoose.model<IConversation>("Conversation", ConversationSchema);

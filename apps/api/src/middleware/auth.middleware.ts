@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { config } from "@/config/config";
-import { AppDataSource } from "@/config/database";
-import { User } from "@/models/User";
+import { User, IUser } from "@/models/User";
 import { logger } from "@/utils/logger";
 
 export interface AuthenticatedRequest extends Request {
-  user?: User;
+  user?: IUser;
   userId?: string;
 }
 
@@ -37,11 +36,8 @@ export const authenticateToken = async (
     // Verify JWT token
     const decoded = jwt.verify(token, config.jwt.secret) as any;
 
-    // Get user from database
-    const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOne({
-      where: { id: decoded.userId },
-    });
+    // Get user from database using Mongoose
+    const user = await User.findOne({ _id: decoded.userId, deletedAt: null });
 
     if (!user) {
       res.status(401).json({

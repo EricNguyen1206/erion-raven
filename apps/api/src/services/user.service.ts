@@ -1,52 +1,46 @@
-import bcrypt from 'bcryptjs';
-import { AppDataSource } from '@/config/database';
-import { User } from '@/models/User';
-import { UpdateProfileDto } from '@notify/validators';
-import { UserDto } from '@notify/types';
-import { logger } from '@/utils/logger';
+import bcrypt from "bcryptjs";
+import { User, IUser } from "@/models/User";
+import { UpdateProfileDto } from "@notify/validators";
+import { UserDto } from "@notify/types";
+import { logger } from "@/utils/logger";
 
 export class UserService {
-  private userRepository = AppDataSource.getRepository(User);
-
   // Private repository methods (kept for internal use and potential future expansion)
-  private async findById(id: string): Promise<User | null> {
+  private async findById(id: string): Promise<IUser | null> {
     try {
-      return await this.userRepository.findOne({
-        where: { id },
-      });
+      return await User.findOne({ _id: id, deletedAt: null });
     } catch (error) {
-      logger.error('Find user by ID error:', error);
+      logger.error("Find user by ID error:", error);
       throw error;
     }
   }
 
   // @ts-expect-error - Used by public methods, false positive
-  private async findByEmail(email: string): Promise<User | null> {
+  private async findByEmail(email: string): Promise<IUser | null> {
     try {
-      return await this.userRepository.findOne({
-        where: { email },
-      });
+      return await User.findOne({ email, deletedAt: null });
     } catch (error) {
-      logger.error('Find user by email error:', error);
+      logger.error("Find user by email error:", error);
       throw error;
     }
   }
 
   // @ts-expect-error - Used by public methods, false positive
-  private async create(user: User): Promise<User> {
+  private async create(userData: Partial<IUser>): Promise<IUser> {
     try {
-      return await this.userRepository.save(user);
+      const user = new User(userData);
+      return await user.save();
     } catch (error) {
-      logger.error('Create user error:', error);
+      logger.error("Create user error:", error);
       throw error;
     }
   }
 
-  private async update(user: User): Promise<User> {
+  private async update(user: IUser): Promise<IUser> {
     try {
-      return await this.userRepository.save(user);
+      return await user.save();
     } catch (error) {
-      logger.error('Update user error:', error);
+      logger.error("Update user error:", error);
       throw error;
     }
   }
@@ -54,9 +48,9 @@ export class UserService {
   // @ts-expect-error - Reserved for future use
   private async delete(userId: string): Promise<void> {
     try {
-      await this.userRepository.softDelete(userId);
+      await User.updateOne({ _id: userId }, { deletedAt: new Date() });
     } catch (error) {
-      logger.error('Delete user error:', error);
+      logger.error("Delete user error:", error);
       throw error;
     }
   }
@@ -67,7 +61,7 @@ export class UserService {
       const user = await this.findById(userId);
 
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
 
       return {
@@ -78,7 +72,7 @@ export class UserService {
         createdAt: user.createdAt,
       };
     } catch (error) {
-      logger.error('Get profile error:', error);
+      logger.error("Get profile error:", error);
       throw error;
     }
   }
@@ -88,13 +82,13 @@ export class UserService {
       const user = await this.findById(userId);
 
       if (!user) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
 
       // Verify current password
       const isCurrentPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
       if (!isCurrentPasswordValid) {
-        throw new Error('Current password is incorrect');
+        throw new Error("Current password is incorrect");
       }
 
       // Update fields if provided
@@ -110,7 +104,7 @@ export class UserService {
 
       const updatedUser = await this.update(user);
 
-      logger.info('User profile updated successfully', { userId: updatedUser.id });
+      logger.info("User profile updated successfully", { userId: updatedUser.id });
 
       return {
         id: updatedUser.id,
@@ -120,18 +114,18 @@ export class UserService {
         createdAt: updatedUser.createdAt,
       };
     } catch (error) {
-      logger.error('Update profile error:', error);
+      logger.error("Update profile error:", error);
       throw error;
     }
   }
 
   public async searchUsers(username: string): Promise<UserDto[]> {
     try {
-      const users = await this.userRepository
-        .createQueryBuilder('user')
-        .where('user.username ILIKE :username', { username: `%${username}%` })
-        .limit(10)
-        .getMany();
+      // Use regex for case-insensitive search (equivalent to ILIKE in PostgreSQL)
+      const users = await User.find({
+        username: { $regex: username, $options: "i" },
+        deletedAt: null,
+      }).limit(10);
 
       return users.map((user) => ({
         id: user.id,
@@ -141,22 +135,29 @@ export class UserService {
         createdAt: user.createdAt,
       }));
     } catch (error) {
-      logger.error('Search users error:', error);
+      logger.error("Search users error:", error);
       throw error;
     }
   }
 
-  public async getFriendsByConversationId(conversationId: string, userId: string): Promise<User[]> {
+  public async getFriendsByConversationId(conversationId: string, userId: string): Promise<IUser[]> {
     try {
-      return await this.userRepository
-        .createQueryBuilder('user')
-        .innerJoin('user.participants', 'participant')
-        .where('participant.conversationId = :conversationId', { conversationId })
-        .andWhere('user.id != :userId', { userId })
-        .andWhere('user.deletedAt IS NULL')
-        .getMany();
+      // Import Participant model here to avoid circular dependency
+      const { Participant } = await import("@/models/Participant");
+
+      // Find all participants in the conversation except the current user
+      const participants = await Participant.find({
+        conversationId,
+        userId: { $ne: userId },
+        deletedAt: null,
+      }).populate<{ userId: IUser }>("userId");
+
+      // Extract user documents from populated participants
+      return participants
+        .map((p) => p.userId as unknown as IUser)
+        .filter((user) => user && !user.deletedAt);
     } catch (error) {
-      logger.error('Get friends by conversation ID error:', error);
+      logger.error("Get friends by conversation ID error:", error);
       throw error;
     }
   }

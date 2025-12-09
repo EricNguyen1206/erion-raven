@@ -1,5 +1,4 @@
 import { config } from '@/config/config';
-import { AppDataSource } from '@/config/database';
 import { User } from '@/models/User';
 import { logger } from '@/utils/logger';
 import jwt from 'jsonwebtoken';
@@ -32,15 +31,13 @@ export const socketAuthMiddleware = async (socket: AuthenticatedSocket, next: Ne
       return next(new Error('Invalid token'));
     }
 
-    // Validate user exists in database (matching API auth middleware)
-    const user = await AppDataSource.getRepository(User).findOne({
-      where: { id: decoded.userId },
-    });
+    // Validate user exists in database using Mongoose
+    const user = await User.findOne({ _id: decoded.userId, deletedAt: null });
 
     if (!user) {
-      logger.warn('Socket connection rejected: User not found', { 
-        socketId: socket.id, 
-        userId: decoded.userId 
+      logger.warn('Socket connection rejected: User not found', {
+        socketId: socket.id,
+        userId: decoded.userId
       });
       return next(new Error('User not found'));
     }
@@ -59,7 +56,7 @@ export const socketAuthMiddleware = async (socket: AuthenticatedSocket, next: Ne
     next();
   } catch (error) {
     logger.error('Socket authentication error:', error);
-    
+
     // Handle JWT specific errors
     if (error instanceof jwt.JsonWebTokenError) {
       return next(new Error('Invalid token'));
@@ -67,7 +64,7 @@ export const socketAuthMiddleware = async (socket: AuthenticatedSocket, next: Ne
     if (error instanceof jwt.TokenExpiredError) {
       return next(new Error('Token expired'));
     }
-    
+
     next(new Error('Authentication failed'));
   }
 };

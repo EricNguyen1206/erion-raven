@@ -1,15 +1,4 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  Unique,
-  Index,
-  JoinColumn,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from "typeorm";
-import { User } from "./User";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export enum FriendRequestStatus {
   PENDING = "pending",
@@ -17,39 +6,38 @@ export enum FriendRequestStatus {
   DECLINED = "declined",
 }
 
-@Entity("friend_requests")
-@Unique(["fromUserId", "toUserId"])
-@Index("IDX_friend_requests_user_friend", ["fromUserId", "toUserId"])
-@Index("IDX_friend_requests_status", ["status"])
-export class FriendRequest {
-  @PrimaryGeneratedColumn("uuid")
-  id!: string;
-
-  @Column({ nullable: false })
-  fromUserId!: string;
-
-  @Column({ nullable: false })
-  toUserId!: string;
-
-  @Column({
-    type: "enum",
-    enum: FriendRequestStatus,
-    default: FriendRequestStatus.PENDING,
-  })
-  status!: FriendRequestStatus;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
-
-  // Relations
-  @ManyToOne(() => User)
-  @JoinColumn({ name: "fromUserId" })
-  fromUser!: User;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: "toUserId" })
-  toUser!: User;
+export interface IFriendRequest extends Document {
+  _id: mongoose.Types.ObjectId;
+  fromUserId: mongoose.Types.ObjectId;
+  toUserId: mongoose.Types.ObjectId;
+  status: FriendRequestStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  id: string;
 }
+
+const FriendRequestSchema: Schema<IFriendRequest> = new Schema(
+  {
+    fromUserId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    toUserId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    status: {
+      type: String,
+      enum: Object.values(FriendRequestStatus),
+      default: FriendRequestStatus.PENDING,
+    },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+// Compound unique index
+FriendRequestSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
+// Index for status queries
+FriendRequestSchema.index({ status: 1 });
+// Index for user lookups
+FriendRequestSchema.index({ toUserId: 1, status: 1 });
+
+export const FriendRequest: Model<IFriendRequest> = mongoose.model<IFriendRequest>("FriendRequest", FriendRequestSchema);
