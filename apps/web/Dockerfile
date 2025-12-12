@@ -1,32 +1,50 @@
 # ================================================
 # DEPENDENCIES STAGE (install dependencies)
 # ================================================
-FROM --platform=linux/amd64 node:24.4.1-alpine AS deps
+FROM node:24.4.1-alpine AS deps
 
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN \
-  if [ -f package-lock.json ]; then npm ci --only=production --legacy-peer-deps; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy root package files for workspace
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc ./
+
+# Copy package.json files for all packages needed by web
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/types/package.json ./packages/types/
+COPY packages/validators/package.json ./packages/validators/
+COPY packages/config/eslint/package.json ./packages/config/eslint/
+COPY packages/config/prettier/package.json ./packages/config/prettier/
+COPY packages/config/tsconfig/package.json ./packages/config/tsconfig/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
 # ================================================
 # BUILD STAGE (build the application)
 # ================================================
-FROM --platform=linux/amd64 node:24.4.1-alpine AS builder
+FROM node:24.4.1-alpine AS builder
 
 WORKDIR /app
 
+# Install pnpm
+RUN npm install -g pnpm
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages ./packages
 
 # Copy source code
-COPY . .
+COPY apps/web ./apps/web
+COPY packages ./packages
 
 # Set environment variables for build
 ENV NODE_ENV=production
@@ -40,13 +58,18 @@ ARG NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 
-# Build the application
-RUN npm run build
+# Build shared packages first
+WORKDIR /app/packages/validators
+RUN pnpm build || true
+
+# Build the Next.js application
+WORKDIR /app/apps/web
+RUN pnpm build
 
 # ================================================
 # RUNTIME STAGE (run the application)
 # ================================================
-FROM --platform=linux/amd64 node:24.4.1-alpine AS runner
+FROM node:24.4.1-alpine AS runner
 
 WORKDIR /app
 
@@ -58,17 +81,20 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs
 
-# Copy public assets
-COPY --from=builder /app/public ./public
+# Copy the standalone output (which includes server.js and internal Next.js files)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 
-# Set the correct permission for prerender cache
-RUN mkdir .next && \
-  chown nextjs:nodejs .next
+# The standalone output creates symlinks to node_modules, we need to copy the actual pnpm store
+# Copy the full node_modules from deps stage to resolve symlinks
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy static files and public folder to the correct locations
+# Copy to apps/web path (for monorepo structure)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+# Also copy to root .next/static (server.js at root may look here)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
 
 # Switch to non-root user
 USER nextjs
@@ -81,8 +107,8 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # Start the application
 CMD ["node", "server.js"]
