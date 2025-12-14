@@ -1,5 +1,5 @@
 import { Dispatch, FormEvent, SetStateAction, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +25,7 @@ interface CreateNewDirectMessageDialogProps {
 
 const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) => {
   const { openDirectMessage, setOpenDirectMessage, children } = props;
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const { directConversations } = useConversationStore((state) => state);
 
@@ -34,7 +34,7 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
       defaultType: 'direct',
       onSuccess: (conversation) => {
         // Navigate to the newly created conversation
-        router.push(`/messages/${conversation.id}`);
+        navigate(`/messages/${conversation.id}`);
         setOpenDirectMessage(false);
       },
     });
@@ -64,7 +64,7 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
 
     // If there's an existing direct conversation, navigate to it
     if (existingDirectConversation) {
-      router.push(`/messages/${existingDirectConversation.id}`);
+      navigate(`/messages/${existingDirectConversation.id}`);
       setOpenDirectMessage(false);
       return;
     }

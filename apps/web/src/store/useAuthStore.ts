@@ -1,99 +1,151 @@
-import { create } from 'zustand';
-import { UserDto } from '@notify/types';
-import { authService } from '@/services/authService';
-import { toast } from 'react-toastify';
+/**
+ * Authentication Store
+ * 
+ * Security: Uses httpOnly cookies managed by the backend.
+ * No JWT tokens are stored in frontend memory or localStorage.
+ * The backend sets secure httpOnly cookies on signin/refresh.
+ */
 
-// Auth store is now only for client-side state management
-// User data is fetched via TanStack Query and not persisted
-interface AuthState {
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { authService } from "@/services/authService";
+import { toast } from "react-toastify";
+import { UserDto } from "@notify/types";
+
+export interface AuthState {
+  // User data only - no tokens in frontend
   user: UserDto | null;
   loading: boolean;
+  hasCheckedAuth: boolean; // Track if we've already checked auth on startup
+  isAuthenticated: boolean;
 
-  clearState: () => void;
-  signUp: (username: string, password: string, email: string) => Promise<void>;
-  signIn: (username: string, password: string) => Promise<void>;
+  // Actions
+  signUp: (username: string, password: string, email: string) => Promise<boolean>;
+  signIn: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
-  fetchProfile: () => Promise<void>;
-  refresh: () => Promise<void>;
+  getProfile: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearState: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  loading: false,
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      loading: false,
+      hasCheckedAuth: false,
+      isAuthenticated: false,
 
-  clearState: () => {
-    set({ user: null, loading: false });
-  },
+      clearState: () => {
+        set({ user: null, loading: false, hasCheckedAuth: true, isAuthenticated: false });
+      },
 
-  signUp: async (username: string, password: string, email: string) => {
-    try {
-      set({ loading: true });
+      signUp: async (username, password, email) => {
+        try {
+          set({ loading: true });
+          await authService.signUp({ username, password, email });
+          toast.success("Registration successful! Please sign in.");
+          return true;
+        } catch (error) {
+          console.error(error);
+          toast.error("Registration failed. Please try again.");
+          return false;
+        } finally {
+          set({ loading: false });
+        }
+      },
 
-      //  gọi api
-      await authService.signUp({ username, password, email });
+      signIn: async (email, password) => {
+        try {
+          set({ loading: true });
+          const response = await authService.signIn({ email, password });
 
-      toast.success('Đăng ký thành công! Bạn sẽ được chuyển sang trang đăng nhập.');
-    } catch (error) {
-      console.error(error);
-      toast.error('Đăng ký không thành công');
-    } finally {
-      set({ loading: false });
+          if (!response.success) {
+            toast.error(response.message || "Sign in failed");
+            return false;
+          }
+
+          // Get user profile after successful login
+          await get().getProfile();
+          toast.success("Welcome back! 🎉");
+          return true;
+        } catch (error) {
+          console.error(error);
+          toast.error("Sign in failed. Please check your credentials.");
+          return false;
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      signOut: async () => {
+        try {
+          await authService.signOut();
+          get().clearState();
+          toast.success("Signed out successfully!");
+        } catch (error) {
+          console.error(error);
+          // Clear state anyway on signout
+          get().clearState();
+          toast.error("Error during sign out.");
+        }
+      },
+
+      getProfile: async () => {
+        try {
+          set({ loading: true });
+          const response = await authService.getProfile();
+          set({ user: response.data, hasCheckedAuth: true, isAuthenticated: true });
+        } catch (error) {
+          console.error(error);
+          set({ user: null, hasCheckedAuth: true, isAuthenticated: false });
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      /**
+       * Check if user is authenticated
+       * Called on app startup to restore session from httpOnly cookie
+       * Only runs once per app session
+       */
+      checkAuth: async () => {
+        const state = get();
+
+        // Prevent multiple calls - strict check
+        if (state.loading) {
+          console.log("[Auth] Skipping checkAuth - already loading");
+          return;
+        }
+
+        if (state.hasCheckedAuth) {
+          console.log("[Auth] Skipping checkAuth - already checked");
+          return;
+        }
+
+        try {
+          set({ loading: true, hasCheckedAuth: true }); // Set hasCheckedAuth immediately to prevent re-entry
+          const response = await authService.getProfile();
+          set({ user: response.data, isAuthenticated: true, loading: false });
+        } catch (error) {
+          // Not authenticated - this is normal for unauthenticated users
+          console.log("[Auth] Not authenticated");
+          set({ user: null, isAuthenticated: false, loading: false });
+        }
+      },
+    }),
+    {
+      name: "auth-storage",
+      storage: createJSONStorage(() => localStorage),
+      // Only persist user data for quick UI display
+      // loading, hasCheckedAuth, isAuthenticated are intentionally NOT persisted
+      // They start fresh on each app load
+      partialize: (state) => ({
+        user: state.user,
+      }),
     }
-  },
+  )
+);
 
-  signIn: async (email, password) => {
-    try {
-      set({ loading: true });
-
-      const { data } = await authService.signIn({ email, password });
-      set({ user: data });
-      toast.success('Chào mừng bạn quay lại với Notify 🎉');
-    } catch (error) {
-      console.error(error);
-      toast.error('Đăng nhập không thành công!');
-    }
-  },
-
-  signOut: async () => {
-    try {
-      get().clearState();
-      await authService.signOut();
-      toast.success('Logout thành công!');
-    } catch (error) {
-      console.error(error);
-      toast.error('Lỗi xảy ra khi logout. Hãy thử lại!');
-    }
-  },
-
-  fetchProfile: async () => {
-    try {
-      set({ loading: true });
-      const res = await authService.getProfile();
-
-      set({ user: res.data });
-    } catch (error) {
-      console.error(error);
-      set({ user: null });
-      toast.error('Lỗi xảy ra khi lấy dữ liệu người dùng. Hãy thử lại!');
-    } finally {
-      set({ loading: false });
-    }
-  },
-
-  refresh: async () => {
-    try {
-      set({ loading: true });
-      const { user, fetchProfile } = get();
-
-      if (!user) {
-        await fetchProfile();
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
-      get().clearState();
-    } finally {
-      set({ loading: false });
-    }
-  },
-}));
+// Alias for backward compatibility
+export { useAuthStore as useAuthStoreNew };

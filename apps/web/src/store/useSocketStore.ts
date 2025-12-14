@@ -1,6 +1,9 @@
 /**
  * Centralized Socket.IO store for chat functionality
- * Uses Socket.IO client with centralized message types from @notify/types
+ * 
+ * Security: Uses httpOnly cookies for WebSocket authentication.
+ * Socket.IO sends cookies automatically with withCredentials: true.
+ * The backend validates the cookie on connection.
  */
 
 import { create } from "zustand";
@@ -22,6 +25,10 @@ import {
   ClientToServerEvents,
   MessageDto,
 } from "@notify/types";
+import { apiUrl } from "@/lib/config";
+
+// API base URL from config
+const API_BASE_URL = apiUrl;
 
 // Main socket store state interface
 interface SocketState {
@@ -33,13 +40,9 @@ interface SocketState {
   // Socket instance
   socket: Socket<ServerToClientEvents, ClientToServerEvents> | null;
   userId: string;
-  username: string;
 
-  // Configuration
-  url: string;
-
-  // Actions
-  connect: (userId: string, token: string) => Promise<void>;
+  // Actions - simplified interface, no token needed
+  connect: (userId: string) => Promise<void>;
   disconnect: () => void;
   sendMessage: (conversationId: string, text: string, url?: string, fileName?: string) => void;
   joinConversation: (conversationId: string) => void;
@@ -57,17 +60,14 @@ export const useSocketStore = create<SocketState>()(
       connectionState: ConnectionState.DISCONNECTED,
       error: null,
       isConnecting: false,
-
-      // Socket instance
       socket: null,
       userId: "",
-      username: "",
 
-      // Configuration
-      url: "",
-
-      // Connect to Socket.IO server
-      connect: async (userId: string, token: string) => {
+      /**
+       * Connect to Socket.IO server
+       * Authentication is handled via httpOnly cookies sent automatically
+       */
+      connect: async (userId: string) => {
         const { socket, connectionState } = get();
 
         // Prevent multiple connection attempts
@@ -92,30 +92,23 @@ export const useSocketStore = create<SocketState>()(
             userId,
           });
 
-          const baseUrl = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:8080";
-          const url = baseUrl;
-
-          set({ url });
-
           return new Promise<void>((resolve, reject) => {
-            // Create Socket.IO client with token in handshake auth
-            const socketInstance = io(url, {
+            // Create Socket.IO client - cookies sent automatically with withCredentials
+            const socketInstance = io(API_BASE_URL, {
               transports: ["websocket", "polling"],
               reconnection: true,
               reconnectionAttempts: 5,
               reconnectionDelay: 3000,
               timeout: 10000,
-              auth: {
-                token: token,
-              },
+              withCredentials: true, // Send httpOnly cookies for authentication
             });
 
             set({ socket: socketInstance });
 
-            // Handle successful connection (authentication already validated by middleware)
+            // Handle successful connection
             socketInstance.on(SocketEvent.CONNECT, () => {
-              console.log("Socket.IO connected and authenticated successfully");
-              
+              console.log("Socket.IO connected successfully");
+
               set({
                 connectionState: ConnectionState.CONNECTED,
                 isConnecting: false,
@@ -128,7 +121,7 @@ export const useSocketStore = create<SocketState>()(
               try {
                 const conversationStore = useConversationStore.getState();
                 const conversationsToRejoin = conversationStore.getJoinedConversations();
-                
+
                 if (conversationsToRejoin.length > 0) {
                   console.log("Re-joining conversations:", conversationsToRejoin);
                   conversationsToRejoin.forEach((conversationId) => {
@@ -160,17 +153,12 @@ export const useSocketStore = create<SocketState>()(
                 connectionState: ConnectionState.DISCONNECTED,
                 isConnecting: false,
               });
-
-              // Auto-reconnect is handled by Socket.IO automatically
-              // We just need to re-authenticate when reconnected
             });
 
             // Handle errors
             socketInstance.on(SocketEvent.ERROR, (payload: ErrorPayload) => {
               console.error("Socket.IO error:", payload);
-              set({
-                error: payload.message,
-              });
+              set({ error: payload.message });
 
               // If authentication failed, reject the connection promise
               if (payload.code === "AUTH_FAILED" || payload.code === "AUTH_ERROR") {
@@ -194,7 +182,7 @@ export const useSocketStore = create<SocketState>()(
                 });
                 reject(timeoutError);
               }
-            }, 15000); // 15 second timeout for full auth flow
+            }, 15000);
           });
         } catch (error) {
           set({
@@ -215,11 +203,6 @@ export const useSocketStore = create<SocketState>()(
         socket.on(SocketEvent.NEW_MESSAGE, (payload: MessageDto) => {
           console.log("New message received:", payload);
 
-          // MessageDto is already in the right format, just dispatch the event
-          // TODO: Add upsertMessageToConversation method to useChatStore
-          // const chatStore = useChatStore.getState();
-          // chatStore.upsertMessageToConversation(payload.conversationId, payload);
-
           // Dispatch custom event for components to listen to
           window.dispatchEvent(
             new CustomEvent("chat-message", {
@@ -231,7 +214,7 @@ export const useSocketStore = create<SocketState>()(
         // Handle joined conversation
         socket.on(SocketEvent.JOINED_CONVERSATION, (payload: JoinedConversationPayload) => {
           console.log("Joined conversation:", payload);
-          
+
           window.dispatchEvent(
             new CustomEvent("ws-conversation-join-ack", {
               detail: { conversationId: payload.conversation_id, userId: payload.user_id },
@@ -242,7 +225,7 @@ export const useSocketStore = create<SocketState>()(
         // Handle left conversation
         socket.on(SocketEvent.LEFT_CONVERSATION, (payload: LeftConversationPayload) => {
           console.log("Left conversation:", payload);
-          
+
           window.dispatchEvent(
             new CustomEvent("ws-conversation-leave-ack", {
               detail: { conversationId: payload.conversation_id, userId: payload.user_id },
@@ -253,7 +236,7 @@ export const useSocketStore = create<SocketState>()(
         // Handle user joined
         socket.on(SocketEvent.USER_JOINED, (payload: UserJoinedPayload) => {
           console.log("User joined conversation:", payload);
-          
+
           window.dispatchEvent(
             new CustomEvent("ws-user-joined", {
               detail: payload,
@@ -264,7 +247,7 @@ export const useSocketStore = create<SocketState>()(
         // Handle user left
         socket.on(SocketEvent.USER_LEFT, (payload: UserLeftPayload) => {
           console.log("User left conversation:", payload);
-          
+
           window.dispatchEvent(
             new CustomEvent("ws-user-left", {
               detail: payload,
@@ -292,7 +275,7 @@ export const useSocketStore = create<SocketState>()(
       // Send a message
       sendMessage: (conversationId: string, text: string, url?: string, fileName?: string) => {
         const { socket, connectionState } = get();
-        
+
         if (!socket || connectionState !== ConnectionState.CONNECTED || !socket.connected) {
           throw new Error("Socket.IO not connected");
         }
@@ -315,7 +298,7 @@ export const useSocketStore = create<SocketState>()(
       // Join a conversation
       joinConversation: (conversationId: string) => {
         const { socket, connectionState } = get();
-        
+
         if (!socket || connectionState !== ConnectionState.CONNECTED || !socket.connected) {
           throw new Error("Socket.IO not connected");
         }
@@ -340,16 +323,16 @@ export const useSocketStore = create<SocketState>()(
       // Leave a conversation
       leaveConversation: (conversationId: string) => {
         const { socket, connectionState } = get();
-        
+
         if (!socket || connectionState !== ConnectionState.CONNECTED) {
-          return; // Don't throw error on disconnect
+          return;
         }
 
         try {
           const payload = createLeaveConversationPayload(parseInt(conversationId));
           socket.emit(SocketEvent.LEAVE_CONVERSATION, payload);
 
-          // Untrack joined conversation so it isn't auto re-joined later
+          // Untrack joined conversation
           try {
             const conversationStore = useConversationStore.getState();
             conversationStore.removeJoinedConversation(conversationId);
@@ -358,7 +341,6 @@ export const useSocketStore = create<SocketState>()(
           }
         } catch (error) {
           console.error("Failed to leave conversation:", error);
-          // Don't set error for leave operations as they're not critical
         }
       },
 

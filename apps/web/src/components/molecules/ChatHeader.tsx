@@ -11,7 +11,7 @@ import {
 } from "../ui/dropdown-menu";
 import ViewMembersDialog from "./ViewMembersDialog";
 import { useLeaveConversationMutation, useDeleteConversationMutation } from "@/services/api/conversations";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useConversationStore } from "@/store/useConversationStore";
 import { useSocketStore } from "@/store/useSocketStore";
 import { toast } from "react-toastify";
@@ -35,7 +35,7 @@ interface ChatHeaderProps {
 
 export default function ChatHeader(chat: ChatHeaderProps) {
   const [isViewMembersOpen, setIsViewMembersOpen] = useState(false);
-  const router = useRouter();
+  const navigate = useNavigate();
   const { removeConversation } = useConversationStore();
   const { leaveConversation: leaveConversationFromSocket } = useSocketStore();
 
@@ -58,7 +58,7 @@ export default function ChatHeader(chat: ChatHeaderProps) {
       toast.success("Successfully left the conversation");
 
       // Redirect to messages page
-      router.push("/messages");
+      navigate("/messages");
     },
     onError: () => {
       toast.error("Failed to leave conversation. Please try again.");
@@ -82,7 +82,7 @@ export default function ChatHeader(chat: ChatHeaderProps) {
       toast.success("Conversation deleted successfully");
 
       // Redirect to messages page
-      router.push("/messages");
+      navigate("/messages");
     },
     onError: () => {
       toast.error("Failed to delete conversation. Please try again.");

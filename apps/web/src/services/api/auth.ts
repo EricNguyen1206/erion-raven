@@ -1,3 +1,8 @@
+/**
+ * Auth API Hooks
+ * React Query hooks for authentication operations
+ */
+
 import {
   UserDto,
   ApiErrorResponse,
@@ -7,19 +12,16 @@ import {
 import { useMutation, UseMutationOptions } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
-import { apiClient } from '../axios-config';
-import { SigninRequestDto, SignupRequestDto } from '@/validators/index';
+import apiClient from '@/lib/axios-client';
+import { SigninRequestDto, SignupRequestDto } from '@/lib/validators';
 
 const signin = async (payload: SigninRequestDto): Promise<ApiResponse<UserDto>> => {
   const { data } = await apiClient.post<ApiResponse<UserDto>>('/auth/signin', payload);
   return data;
 };
 
-const signup = async (payload: SignupRequestDto): Promise<{ success: boolean; data: UserDto }> => {
-  const { data } = await apiClient.post<{ success: boolean; data: UserDto }>(
-    '/auth/signup',
-    payload
-  );
+const signup = async (payload: SignupRequestDto): Promise<ApiResponse<UserDto>> => {
+  const { data } = await apiClient.post<ApiResponse<UserDto>>('/auth/signup', payload);
   return data;
 };
 
@@ -28,8 +30,8 @@ const signout = async (): Promise<ApiMessageResponse> => {
   return data;
 };
 
-const refresh = async () => {
-  const { data } = await apiClient.post('/auth/refresh');
+const refresh = async (): Promise<ApiMessageResponse> => {
+  const { data } = await apiClient.post<ApiMessageResponse>('/auth/refresh');
   return data;
 };
 
@@ -44,17 +46,9 @@ export const useSigninMutation = (
 };
 
 export const useSignupMutation = (
-  options?: UseMutationOptions<
-    { success: boolean; data: UserDto },
-    AxiosError<ApiErrorResponse>,
-    SignupRequestDto
-  >
+  options?: UseMutationOptions<ApiResponse<UserDto>, AxiosError<ApiErrorResponse>, SignupRequestDto>
 ) => {
-  return useMutation<
-    { success: boolean; data: UserDto },
-    AxiosError<ApiErrorResponse>,
-    SignupRequestDto
-  >({
+  return useMutation<ApiResponse<UserDto>, AxiosError<ApiErrorResponse>, SignupRequestDto>({
     mutationKey: ['auth', 'signup'],
     mutationFn: signup,
     ...options,
@@ -81,6 +75,6 @@ export const useRefreshMutation = (
   });
 };
 
-// Backward compatibility (deprecated)
+// Backward compatibility aliases (deprecated)
 export const useLoginMutation = useSigninMutation;
 export const useRegisterMutation = useSignupMutation;

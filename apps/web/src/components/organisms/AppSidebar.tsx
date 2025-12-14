@@ -1,14 +1,24 @@
-"use client";
-
-import Link from "next/link";
-import { Home, Users, Hash, Settings, Search } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Image from "next/image";
-import { useSidebarActions } from "@/app/messages/action";
+import { Link } from "react-router-dom";
+import { Home, Users, Search } from "lucide-react";
+import { useSidebarActions } from "@/hooks/useSidebarActions";
 import { SidebarConversations } from "../molecules/SidebarConversations";
 import SidebarDirectMessages from "../molecules/SidebarDirectMessages";
 import NavUser from "../molecules/NavUser";
-import { Input } from "../ui/input";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInput,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 export function AppSidebar() {
   // Use centralized business logic from actions
@@ -21,93 +31,116 @@ export function AppSidebar() {
   } = useSidebarActions();
 
   return (
-    <aside
-      className="w-[280px] flex flex-col h-full border-r z-20"
-      style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
-    >
+    <Sidebar collapsible="icon" className="border-r border-border">
       {/* Team Header */}
-      <div className="h-14 flex items-center gap-3 px-4 border-b" style={{ borderColor: "var(--border)" }}>
-        <Image src="/images/img2.jpeg" alt="Notify Logo" width={32} height={32} className="flex-shrink-0" />
-        <h1 className="font-bold text-lg tracking-tight" style={{ color: "var(--card-foreground)" }}>
-          Notify
+      <SidebarHeader className="h-12 flex-row items-center gap-3 px-2 border-b border-border transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+        <img
+          src="/logo.png"
+          alt="Raven Logo"
+          width={32}
+          height={32}
+          className="w-8 h-8 min-w-8 min-h-8 rounded object-contain flex-shrink-0 transition-transform duration-200 bg-background dark:bg-primary"
+        />
+        <h1 className="font-bold text-lg tracking-tight text-sidebar-foreground whitespace-nowrap overflow-hidden transition-all duration-200 ease-linear group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+          Raven
         </h1>
-      </div>
+      </SidebarHeader>
 
       {/* Search Section */}
-      <div className="p-3 border-b" style={{ borderColor: "var(--border)" }}>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 border-chat-border rounded-chat focus:border-chat-primary transition-colors"
-          />
-        </div>
-      </div>
+      {/* <SearchSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> */}
 
-      <ScrollArea className="flex-1 overflow-hidden">
-        <div className="px-3 space-y-6 pb-4">
-          {/* Navigation Section */}
-          <div className="space-y-1">
-            <h3
-              className="px-3 text-xs font-semibold uppercase tracking-wider mb-2"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              Navigation
-            </h3>
-            <Link
-              href="/"
-              className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:rounded-md"
-              style={{
-                color: "var(--muted-foreground)",
-              }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLElement).style.backgroundColor = "var(--secondary)"
-                ;(e.currentTarget as HTMLElement).style.color = "var(--card-foreground)"
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                ;(e.currentTarget as HTMLElement).style.color = "var(--muted-foreground)"
-              }}
-            >
-              <Home className="w-4 h-4" />
-              <span className="text-sm font-medium">Home</span>
-            </Link>
-            <Link
-              href="/contacts"
-              className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors"
-              style={{ color: "var(--muted-foreground)" }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLElement).style.backgroundColor = "var(--secondary)"
-                ;(e.currentTarget as HTMLElement).style.color = "var(--card-foreground)"
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                ;(e.currentTarget as HTMLElement).style.color = "var(--muted-foreground)"
-              }}
-            >
-              <Users className="w-4 h-4" />
-              <span className="text-sm font-medium">Contacts</span>
-            </Link>
-          </div>
+      <SidebarContent>
+        {/* Navigation Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-muted-foreground">
+            Navigation
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Home">
+                  <Link to="/">
+                    <Home className="w-4 h-4" />
+                    <span>Home</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Contacts">
+                  <Link to="/contacts">
+                    <Users className="w-4 h-4" />
+                    <span>Contacts</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-          {/* Conversations Section */}
-          <SidebarConversations items={filteredConversations} loading={isConversationsLoading} />
+        {/* Conversations Section */}
+        <SidebarConversations
+          items={filteredConversations}
+          loading={isConversationsLoading}
+        />
 
-          {/* Direct Messages Section */}
-          <SidebarDirectMessages items={filteredDirectMessages} loading={isConversationsLoading} />
-        </div>
-      </ScrollArea>
+        {/* Direct Messages Section */}
+        <SidebarDirectMessages
+          items={filteredDirectMessages}
+          loading={isConversationsLoading}
+        />
+      </SidebarContent>
 
       {/* User Profile Section */}
-      <div
-        className="flex-shrink-0 p-3 border-t"
-        style={{ backgroundColor: "var(--secondary)", borderColor: "var(--border)" }}
-      >
+      <SidebarFooter className="border-t border-border bg-secondary">
         <NavUser />
-      </div>
-    </aside>
+      </SidebarFooter>
+
+      {/* Rail for resize/toggle on edge */}
+      <SidebarRail />
+    </Sidebar>
+  );
+}
+
+// Separate component to access useSidebar context
+function SearchSection({
+  searchQuery,
+  setSearchQuery,
+}: {
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+}) {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  return (
+    <SidebarContent className="h-min">
+      <SidebarGroup className="py-0">
+        <SidebarGroupContent className="p-2 border-b border-border">
+          {isCollapsed ? (
+            // Show only search icon button when collapsed
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Search">
+                  <Search className="w-4 h-4" />
+                  <span>Search</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          ) : (
+            // Show full search input when expanded
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <SidebarInput
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-background border-border"
+              />
+            </div>
+          )}
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </SidebarContent>
   );
 }
 

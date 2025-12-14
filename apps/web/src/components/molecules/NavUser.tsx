@@ -1,10 +1,8 @@
-"use client";
-
-import { BadgeCheck, ChevronsUpDown, LogOut, Moon, Sparkles, Sun } from "lucide-react";
+import { BadgeCheck, ChevronsUpDown, LogOut, Moon, Sun } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import { useTheme } from "@/components/templates/ThemeProvider";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   DropdownMenu,
@@ -24,7 +22,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const NavUser = () => {
   const { data: user, isLoading } = useCurrentUserQuery();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -33,7 +31,7 @@ const NavUser = () => {
     onSuccess: () => {
       queryClient.clear();
       toast.success("Sign out successfully");
-      router.replace("/login");
+      navigate("/login", { replace: true });
     },
     onError: () => {
       toast.error("An error occurred during sign out");
@@ -53,7 +51,7 @@ const NavUser = () => {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="h-[40px] data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="h-[40px] data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-lg"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 {user && <AvatarImage src={user.avatar || undefined} alt={user.username} />}

@@ -2,7 +2,7 @@ import { ApiErrorResponse, MessageDto, PaginatedApiResponse } from '@notify/type
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
-import { apiClient } from '../axios-config';
+import apiClient from '@/lib/axios-client';
 
 export interface ConversationMessagesParams {
   limit?: number;

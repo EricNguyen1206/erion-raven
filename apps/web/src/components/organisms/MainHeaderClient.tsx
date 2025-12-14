@@ -1,8 +1,7 @@
 'use client';
 
 import { House } from 'lucide-react';
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ThemeToggle } from "../atoms/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -15,7 +14,7 @@ interface MainHeaderClientProps {
 }
 
 const MainHeaderClient = ({ user }: MainHeaderClientProps) => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const signoutMutation = useSignoutMutation({
@@ -23,7 +22,7 @@ const MainHeaderClient = ({ user }: MainHeaderClientProps) => {
       // Clear all query cache, especially user data
       queryClient.clear();
       toast.success("Sign out successfully");
-      router.replace("/login");
+      navigate("/login", { replace: true });
     },
     onError: () => {
       toast.error("An error occurred during sign out");
@@ -36,7 +35,7 @@ const MainHeaderClient = ({ user }: MainHeaderClientProps) => {
 
   return (
     <div className="flex justify-between items-center py-2 px-4">
-      <Link href="/">
+      <Link to="/">
         <Button type="button" variant="outline" >
           <House />
           <div className="ml-2">Votify</div>
@@ -45,7 +44,7 @@ const MainHeaderClient = ({ user }: MainHeaderClientProps) => {
       <div className="flex items-center gap-2">
         <ThemeToggle />
         {user == null ? (
-          <Link href={"/login"}>
+          <Link to="/login">
             <div className="bg-primary-black text-white flex justify-center items-center gap-3 px-6 py-3 rounded-3xl hover:bg-secondary-gray hover:shadow-2xl">
               <p className="font-medium text-[18px]">Login</p>
             </div>

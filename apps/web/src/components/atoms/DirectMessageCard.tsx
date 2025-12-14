@@ -1,7 +1,7 @@
 import { ConversationDto } from '@notify/types';
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { SidebarMenuItem } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +15,7 @@ const DirectMessageCard = ({ convo, isActive }: DirectMessageCardProps) => {
   return (
     <SidebarMenuItem className={cn(isActive && 'bg-primary/10')}>
       <Link
-        href={`/messages/${convo.id}`}
+        to={`/messages/${convo.id}`}
         className="flex items-center cursor-pointer transition-colors rounded-md p-2 mb-1"
       >
         <div className="relative mr-3">

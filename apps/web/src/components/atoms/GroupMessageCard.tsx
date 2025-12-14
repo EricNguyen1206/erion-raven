@@ -1,7 +1,7 @@
 import { ConversationDto } from '@notify/types';
 import { Hash } from 'lucide-react';
 import { SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 type GroupMessageCardProps = {
@@ -14,7 +14,7 @@ const GroupMessageCard = ({ convo, isActive }: GroupMessageCardProps) => {
     <SidebarMenuItem className={cn(isActive && 'bg-primary/10')}>
       <SidebarMenuButton tooltip={convo.name}>
         <Hash />
-        <Link href={`/messages/${convo.id}`}>
+        <Link to={`/messages/${convo.id}`}>
           <span>{convo.name}</span>
         </Link>
       </SidebarMenuButton>

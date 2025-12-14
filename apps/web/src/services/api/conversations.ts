@@ -21,7 +21,7 @@ import {
 } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
-import { apiClient } from '../axios-config';
+import apiClient from '@/lib/axios-client';
 
 const CONVERSATIONS_QUERY_KEY = ['conversations'];
 
