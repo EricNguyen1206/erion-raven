@@ -69,7 +69,7 @@ export const useConversationNavigation = () => {
         awaitingLeaveAckRef.current = true;
         pendingJoinConversationIdRef.current = nextId;
         leaveConversation(String(prevId));
-      } catch {}
+      } catch { }
       return; // wait for ack
     }
 
@@ -78,7 +78,7 @@ export const useConversationNavigation = () => {
       try {
         joinConversation(String(nextId));
         joinedConversationIdRef.current = nextId;
-      } catch {}
+      } catch { }
     }
   }, [connectionState, currentConversation?.id, joinConversation, leaveConversation]);
 
@@ -99,7 +99,7 @@ export const useConversationNavigation = () => {
         try {
           joinConversation(String(nextId));
           joinedConversationIdRef.current = nextId;
-        } catch {}
+        } catch { }
       }
     };
 
@@ -316,7 +316,6 @@ export const useWebSocketMessageHandler = (conversationId: string | undefined) =
 // Main hook that combines all other hooks
 export const useChatPage = () => {
   const { data: sessionUser } = useCurrentUserQuery();
-  const { data: user } = useCurrentUserQuery();
 
   const { screenHeight, isOverFlow, updateOverflow } = useScreenDimensions(720);
   const { conversationId, currentConversation, connectionState } = useConversationNavigation();
@@ -347,7 +346,6 @@ export const useChatPage = () => {
   return {
     // User data
     sessionUser,
-    user,
 
     // Conversation data
     conversationId,

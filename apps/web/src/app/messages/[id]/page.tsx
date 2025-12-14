@@ -57,7 +57,7 @@ const DirectMessagesPage = () => {
           <div className="space-y-0">
             {user?.id &&
               chats.map((message) => (
-                <MessageBubble key={message.id} message={message} isGroup={true} userId={user.id} />
+                <MessageBubble key={message.id} content={message.text ?? ""} variant={message.senderId === user.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />
               ))}
             <div ref={mainRef} className="h-0" />
           </div>

@@ -1,4 +1,4 @@
-import { UserDto } from "./user";
+import { UserDto } from "./user.js";
 /**
  * Friend Response
  * Represents a friendship relationship with optional friend details

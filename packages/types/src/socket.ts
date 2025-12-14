@@ -3,7 +3,7 @@
  * Shared between frontend and backend for type safety
  */
 
-import { MessageDto } from "./message";
+import { MessageDto } from "./message.js";
 
 // ============================================================================
 // Connection States
@@ -24,21 +24,21 @@ export enum SocketEvent {
   // Connection events
   CONNECT = "connect",
   DISCONNECT = "disconnect",
-  
+
   // Conversation events
   JOIN_CONVERSATION = "join_conversation",
   LEAVE_CONVERSATION = "leave_conversation",
   JOINED_CONVERSATION = "joined_conversation",
   LEFT_CONVERSATION = "left_conversation",
-  
+
   // Message events
   SEND_MESSAGE = "send_message",
   NEW_MESSAGE = "new_message",
-  
+
   // User events
   USER_JOINED = "user_joined",
   USER_LEFT = "user_left",
-  
+
   // Error events
   ERROR = "error",
   CONNECTION_ERROR = "connect_error",

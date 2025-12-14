@@ -1,4 +1,4 @@
-import { UserDto } from "./user";
+import { UserDto } from "./user.js";
 
 // Conversation Types
 export enum ConversationType {
@@ -45,9 +45,9 @@ export interface ConversationMutationResponse {
   data: ConversationResponse;
 }
 
-export interface ConversationListResponseDto extends ConversationListDto {}
+export interface ConversationListResponseDto extends ConversationListDto { }
 
-export interface ConversationDetailResponseDto extends ConversationDetailDto {}
+export interface ConversationDetailResponseDto extends ConversationDetailDto { }
 
 export interface ConversationListApiResponse {
   success: boolean;
