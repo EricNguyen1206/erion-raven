@@ -91,19 +91,22 @@ export class ConversationService {
     group: ConversationDto[];
   }> {
     try {
+      logger.debug("Get all conversations for user:", userId);
       // Find all conversation IDs where user is a participant
       const userParticipants = await Participant.find({
         userId,
         deletedAt: null,
       });
-
+      logger.debug("User participants:", userParticipants);
       const conversationIds = userParticipants.map((p) => p.conversationId);
-
+      logger.debug("Conversation IDs:", conversationIds);
+      logger.debug("Conversation IDs:", conversationIds);
       // Find all conversations
       const conversations = await Conversation.find({
         _id: { $in: conversationIds },
         deletedAt: null,
       });
+      logger.debug("Conversations:", conversations);
 
       const direct: ConversationDto[] = [];
       const group: ConversationDto[] = [];

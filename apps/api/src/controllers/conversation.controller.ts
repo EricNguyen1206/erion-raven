@@ -17,13 +17,24 @@ export class ConversationController {
     try {
       const userId = req.user!.id;
       logger.info('Get user conversations', { userId });
-
+      logger.debug('TEST2', typeof this.conversationService);
       const conversations = await this.conversationService.getAllConversation(userId);
+      logger.debug('Get user debug', { conversations });
+      const resData: ApiResponse<ConversationDetailDto[]> = {
+        success: false,
+        message: 'Not Fould',
+        data: [],
+      };
 
-      res.status(200).json({
-        success: true,
-        data: conversations,
-      });
+      if (!conversations) {
+        res.status(403).json(resData);
+      }
+
+      resData.success = true;
+      resData.message = 'Success';
+      resData.data = conversations! as unknown as ConversationDetailDto[];
+
+      res.status(200).json(resData);
     } catch (error) {
       logger.error('Get user conversations error:', error);
       res.status(500).json({

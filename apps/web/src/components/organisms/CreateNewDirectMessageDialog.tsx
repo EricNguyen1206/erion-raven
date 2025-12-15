@@ -1,5 +1,6 @@
 import { Dispatch, FormEvent, SetStateAction, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +17,7 @@ import { UserSearchInput } from '@/components/molecules/UserSearchInput';
 import { useCreateConversation } from '@/hooks/useCreateConversation';
 import type { UserDto } from '@notify/types';
 import { useConversationStore } from '@/store/useConversationStore';
+import { useFriendsQuery, useSendFriendRequestMutation } from '@/services/api/friends';
 
 interface CreateNewDirectMessageDialogProps {
   openDirectMessage: boolean;
@@ -29,6 +31,25 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
 
   const { directConversations } = useConversationStore((state) => state);
 
+  // Fetch friends list to check if selected user is already a friend
+  const { data: friends = [] } = useFriendsQuery();
+
+  // Friend request mutation
+  const sendFriendRequestMutation = useSendFriendRequestMutation({
+    onSuccess: () => {
+      toast.success('Friend request sent!');
+    },
+    onError: (error) => {
+      // Don't show error if already friends or request already sent
+      const message = error.response?.data?.message || '';
+      if (message.includes('already')) {
+        toast.info(message);
+      } else {
+        toast.error(message || 'Failed to send friend request');
+      }
+    },
+  });
+
   const { formData, loading, createConversation, updateSelectedUsers, resetForm } =
     useCreateConversation({
       defaultType: 'direct',
@@ -38,6 +59,20 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
         setOpenDirectMessage(false);
       },
     });
+
+  // Check if selected user is already a friend
+  const isSelectedUserFriend = useMemo(() => {
+    if (formData.selectedUsers.length !== 1) return false;
+
+    const selectedUser = formData.selectedUsers[0];
+    if (!selectedUser) return false;
+
+    // Check if selected user exists in friends list
+    return friends.some(
+      (friendship) =>
+        friendship.friendId === selectedUser.id || friendship.friend?.id === selectedUser.id
+    );
+  }, [formData.selectedUsers, friends]);
 
   // Check if selected users already have a direct conversation
   const existingDirectConversation = useMemo(() => {
@@ -62,6 +97,8 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
   const handleCreateDirectMessage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const selectedUser = formData.selectedUsers[0];
+
     // If there's an existing direct conversation, navigate to it
     if (existingDirectConversation) {
       navigate(`/messages/${existingDirectConversation.id}`);
@@ -69,7 +106,12 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
       return;
     }
 
-    // Otherwise create a new direct conversation
+    // Send friend request if not already friends
+    if (selectedUser && !isSelectedUserFriend) {
+      sendFriendRequestMutation.mutate(selectedUser.id);
+    }
+
+    // Create the direct conversation
     await createConversation();
   };
 
@@ -102,7 +144,7 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
               onUsersChange={handleUserSelection}
               maxUsers={1}
               minUsers={1}
-              disabled={loading}
+              disabled={loading || sendFriendRequestMutation.isPending}
             />
           </div>
 
@@ -115,6 +157,17 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
             </div>
           )}
 
+          {!existingDirectConversation &&
+            formData.selectedUsers.length === 1 &&
+            !isSelectedUserFriend && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <p className="text-sm text-amber-800">
+                  {formData.selectedUsers[0]?.email} is not in your friends list. A friend request
+                  will be sent when you start this conversation.
+                </p>
+              </div>
+            )}
+
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="secondary">
@@ -124,9 +177,13 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
             <Button
               type="submit"
               variant="default"
-              disabled={loading || formData.selectedUsers.length !== 1}
+              disabled={
+                loading ||
+                sendFriendRequestMutation.isPending ||
+                formData.selectedUsers.length !== 1
+              }
             >
-              {loading
+              {loading || sendFriendRequestMutation.isPending
                 ? 'Creating...'
                 : existingDirectConversation
                   ? 'Open Conversation'
@@ -140,3 +197,4 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
 };
 
 export default CreateNewDirectMessageDialog;
+

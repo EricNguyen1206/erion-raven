@@ -93,7 +93,7 @@ const LoginForm = () => {
               id="email"
               type="email"
               placeholder="name@example.com"
-              defaultValue="user1@notify.com"
+              defaultValue="user1@example.com"
               onFocus={handleInputFocus}
               className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
               required
@@ -118,7 +118,7 @@ const LoginForm = () => {
               ref={passwordRef}
               id="password"
               type="password"
-              defaultValue="123456"
+              defaultValue="admin123"
               onFocus={handleInputFocus}
               className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
               required

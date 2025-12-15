@@ -1,4 +1,8 @@
-import 'module-alias/register';
+// Only use module-alias in production (when running from dist)
+// In development, tsconfig-paths/register handles path aliases
+if (process.env['NODE_ENV'] === 'production') {
+  require('module-alias/register');
+}
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';

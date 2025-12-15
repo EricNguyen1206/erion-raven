@@ -11,35 +11,35 @@ const router = Router();
 const conversationController = new ConversationController();
 
 // GET /api/v1/conversations
-router.get('/', conversationController.getUserConversations);
+router.get('/', conversationController.getUserConversations.bind(conversationController));
 
 // POST /api/v1/conversations
-router.post('/', validateDto(CreateConversationRequestDto), conversationController.createConversation);
+router.post('/', validateDto(CreateConversationRequestDto), conversationController.createConversation.bind(conversationController));
 
 // GET /api/v1/conversations/:id
-router.get('/:id', conversationController.getConversationById);
+router.get('/:id', conversationController.getConversationById.bind(conversationController));
 
 // PUT /api/v1/conversations/:id
-router.put('/:id', validateDto(UpdateConversationRequestDto), conversationController.updateConversation);
+router.put('/:id', validateDto(UpdateConversationRequestDto), conversationController.updateConversation.bind(conversationController));
 
 // DELETE /api/v1/conversations/:id
-router.delete('/:id', conversationController.deleteConversation);
+router.delete('/:id', conversationController.deleteConversation.bind(conversationController));
 
 // POST /api/v1/conversations/:id/user
 router.post(
   '/:id/user',
   validateDto(ConversationMembershipRequest),
-  conversationController.addUserToConversation
+  conversationController.addUserToConversation.bind(conversationController)
 );
 
 // PUT /api/v1/conversations/:id/user
-router.put('/:id/user', conversationController.leaveConversation);
+router.put('/:id/user', conversationController.leaveConversation.bind(conversationController));
 
 // DELETE /api/v1/conversations/:id/user
 router.delete(
   '/:id/user',
   validateDto(ConversationMembershipRequest),
-  conversationController.removeUserFromConversation
+  conversationController.removeUserFromConversation.bind(conversationController)
 );
 
 export { router as conversationRoutes };

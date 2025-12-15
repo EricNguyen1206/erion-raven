@@ -2,87 +2,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Check, X } from "lucide-react"
-
-interface Friend {
-  id: string
-  name: string
-  avatar: string
-  status: "online" | "offline" | "away"
-}
-
-interface FriendRequest {
-  id: string
-  name: string
-  avatar: string
-  mutualFriends: number
-}
-
-const mockFriends: Friend[] = [
-  {
-    id: "1",
-    name: "Alice Freeman",
-    avatar: "/placeholder.svg?height=48&width=48",
-    status: "online",
-  },
-  {
-    id: "2",
-    name: "Bob Smith",
-    avatar: "/placeholder.svg?height=48&width=48",
-    status: "away",
-  },
-  {
-    id: "3",
-    name: "Charlie Davis",
-    avatar: "/placeholder.svg?height=48&width=48",
-    status: "online",
-  },
-  {
-    id: "4",
-    name: "Diana Prince",
-    avatar: "/placeholder.svg?height=48&width=48",
-    status: "offline",
-  },
-  {
-    id: "5",
-    name: "Ethan Hunt",
-    avatar: "/placeholder.svg?height=48&width=48",
-    status: "online",
-  },
-  {
-    id: "6",
-    name: "Fiona Gallagher",
-    avatar: "/placeholder.svg?height=48&width=48",
-    status: "offline",
-  },
-  {
-    id: "7",
-    name: "George Wilson",
-    avatar: "/placeholder.svg?height=48&width=48",
-    status: "away",
-  },
-]
-
-const mockRequests: FriendRequest[] = [
-  {
-    id: "1",
-    name: "Hannah Montana",
-    avatar: "/placeholder.svg?height=48&width=48",
-    mutualFriends: 3,
-  },
-  {
-    id: "2",
-    name: "Ian Malcolm",
-    avatar: "/placeholder.svg?height=48&width=48",
-    mutualFriends: 7,
-  },
-  {
-    id: "3",
-    name: "Julia Roberts",
-    avatar: "/placeholder.svg?height=48&width=48",
-    mutualFriends: 2,
-  },
-]
+import { Check, X, Loader2 } from "lucide-react"
+import { toast } from "react-toastify"
+import {
+  useFriendsQuery,
+  useFriendRequestsQuery,
+  useAcceptFriendRequestMutation,
+  useDeclineFriendRequestMutation,
+} from "@/services/api/friends"
 
 const statusColors = {
   online: "#22c55e",
@@ -91,6 +18,40 @@ const statusColors = {
 }
 
 export default function ContactsPage() {
+  // Fetch friends and friend requests
+  const { data: friends = [], isLoading: isLoadingFriends } = useFriendsQuery()
+  const { data: friendRequests, isLoading: isLoadingRequests } = useFriendRequestsQuery()
+
+  // Mutations
+  const acceptMutation = useAcceptFriendRequestMutation({
+    onSuccess: () => {
+      toast.success("Friend request accepted!")
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to accept friend request")
+    },
+  })
+
+  const declineMutation = useDeclineFriendRequestMutation({
+    onSuccess: () => {
+      toast.success("Friend request declined")
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to decline friend request")
+    },
+  })
+
+  const handleAccept = (requestId: string) => {
+    acceptMutation.mutate(requestId)
+  }
+
+  const handleDecline = (requestId: string) => {
+    declineMutation.mutate(requestId)
+  }
+
+  // Get received friend requests (pending only)
+  const receivedRequests = friendRequests?.received || []
+
   return (
     <div className="h-full w-full flex flex-col p-6 gap-6">
       {/* Header */}
@@ -103,7 +64,7 @@ export default function ContactsPage() {
           className="border"
           style={{ backgroundColor: "var(--secondary)", borderColor: "var(--border)", color: "var(--card-foreground)" }}
         >
-          {mockFriends.length} friends
+          {friends.length} friends
         </Badge>
       </div>
 
@@ -118,66 +79,90 @@ export default function ContactsPage() {
               Friend Requests
             </h2>
             <p className="text-xs mt-0.5" style={{ color: "var(--muted-foreground)" }}>
-              {mockRequests.length} pending
+              {receivedRequests.length} pending
             </p>
           </div>
 
           <ScrollArea className="max-h-[400px]">
             <div className="p-2">
-              {mockRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="flex items-center gap-3 p-3 rounded-xl transition-colors"
-                  style={{ borderColor: "var(--border)" }}
-                  onMouseEnter={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.backgroundColor = "var(--secondary)"
-                  }}
-                  onMouseLeave={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                  }}
-                >
-                  <Avatar className="h-12 w-12 border-2 shadow-sm" style={{ borderColor: "var(--border)" }}>
-                    <AvatarImage src={request.avatar || "/placeholder.svg"} alt={request.name} />
-                    <AvatarFallback style={{ backgroundColor: "var(--secondary)", color: "var(--card-foreground)" }}>
-                      {request.name.slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate" style={{ color: "var(--card-foreground)" }}>
-                      {request.name}
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                      {request.mutualFriends} mutual friends
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 rounded-full shadow-md border"
-                      style={{
-                        backgroundColor: "#22c55e",
-                        borderColor: "var(--border)",
-                        color: "#fff",
-                      }}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 rounded-full shadow-md border"
-                      style={{
-                        backgroundColor: "#ef4444",
-                        borderColor: "var(--border)",
-                        color: "#fff",
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+              {isLoadingRequests ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--muted-foreground)" }} />
                 </div>
-              ))}
+              ) : receivedRequests.length === 0 ? (
+                <div className="flex items-center justify-center p-8">
+                  <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+                    No pending requests
+                  </p>
+                </div>
+              ) : (
+                receivedRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    className="flex items-center gap-3 p-3 rounded-xl transition-colors"
+                    style={{ borderColor: "var(--border)" }}
+                    onMouseEnter={(e) => {
+                      ; (e.currentTarget as HTMLElement).style.backgroundColor = "var(--secondary)"
+                    }}
+                    onMouseLeave={(e) => {
+                      ; (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
+                    }}
+                  >
+                    <Avatar className="h-12 w-12 border-2 shadow-sm" style={{ borderColor: "var(--border)" }}>
+                      <AvatarImage src={request.fromUser?.avatar || "/placeholder.svg"} alt={request.fromUser?.username || "User"} />
+                      <AvatarFallback style={{ backgroundColor: "var(--secondary)", color: "var(--card-foreground)" }}>
+                        {(request.fromUser?.username || "U").slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate" style={{ color: "var(--card-foreground)" }}>
+                        {request.fromUser?.username || request.fromUser?.email || "Unknown User"}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                        {request.fromUser?.email}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        className="h-8 w-8 rounded-full shadow-md border"
+                        style={{
+                          backgroundColor: "#22c55e",
+                          borderColor: "var(--border)",
+                          color: "#fff",
+                        }}
+                        onClick={() => handleAccept(request.id)}
+                        disabled={acceptMutation.isPending || declineMutation.isPending}
+                      >
+                        {acceptMutation.isPending && acceptMutation.variables === request.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        size="icon"
+                        className="h-8 w-8 rounded-full shadow-md border"
+                        style={{
+                          backgroundColor: "#ef4444",
+                          borderColor: "var(--border)",
+                          color: "#fff",
+                        }}
+                        onClick={() => handleDecline(request.id)}
+                        disabled={acceptMutation.isPending || declineMutation.isPending}
+                      >
+                        {declineMutation.isPending && declineMutation.variables === request.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </ScrollArea>
         </div>
@@ -192,61 +177,76 @@ export default function ContactsPage() {
               All Friends
             </h2>
             <p className="text-xs mt-0.5" style={{ color: "var(--muted-foreground)" }}>
-              {mockFriends.filter((f) => f.status === "online").length} online
+              {friends.length} total
             </p>
           </div>
 
           <ScrollArea className="flex-1 max-h-[600px]">
             <div className="p-2">
-              {mockFriends.map((friend) => (
-                <div
-                  key={friend.id}
-                  className="flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer"
-                  onMouseEnter={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.backgroundColor = "var(--secondary)"
-                  }}
-                  onMouseLeave={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                  }}
-                >
-                  <div className="relative">
-                    <Avatar className="h-12 w-12 border-2 shadow-sm" style={{ borderColor: "var(--border)" }}>
-                      <AvatarImage src={friend.avatar || "/placeholder.svg"} alt={friend.name} />
-                      <AvatarFallback style={{ backgroundColor: "var(--secondary)", color: "var(--card-foreground)" }}>
-                        {friend.name.slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span
-                      className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 shadow-sm"
-                      style={{
-                        backgroundColor: statusColors[friend.status],
-                        borderColor: "var(--card)",
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate" style={{ color: "var(--card-foreground)" }}>
-                      {friend.name}
-                    </p>
-                    <p className="text-xs capitalize" style={{ color: "var(--muted-foreground)" }}>
-                      {friend.status}
-                    </p>
-                  </div>
-
-                  <Button
-                    size="sm"
-                    className="border"
-                    style={{
-                      backgroundColor: "var(--secondary)",
-                      borderColor: "var(--border)",
-                      color: "var(--card-foreground)",
-                    }}
-                  >
-                    Message
-                  </Button>
+              {isLoadingFriends ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--muted-foreground)" }} />
                 </div>
-              ))}
+              ) : friends.length === 0 ? (
+                <div className="flex items-center justify-center p-8">
+                  <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+                    No friends yet
+                  </p>
+                </div>
+              ) : (
+                friends.map((friendship) => {
+                  const friend = friendship.friend
+                  return (
+                    <div
+                      key={friendship.friendId}
+                      className="flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer"
+                      onMouseEnter={(e) => {
+                        ; (e.currentTarget as HTMLElement).style.backgroundColor = "var(--secondary)"
+                      }}
+                      onMouseLeave={(e) => {
+                        ; (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
+                      }}
+                    >
+                      <div className="relative">
+                        <Avatar className="h-12 w-12 border-2 shadow-sm" style={{ borderColor: "var(--border)" }}>
+                          <AvatarImage src={friend?.avatar || "/placeholder.svg"} alt={friend?.username || "Friend"} />
+                          <AvatarFallback style={{ backgroundColor: "var(--secondary)", color: "var(--card-foreground)" }}>
+                            {(friend?.username || "F").slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span
+                          className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 shadow-sm"
+                          style={{
+                            backgroundColor: statusColors.offline, // TODO: Get real online status
+                            borderColor: "var(--card)",
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate" style={{ color: "var(--card-foreground)" }}>
+                          {friend?.username || friend?.email || "Unknown"}
+                        </p>
+                        <p className="text-xs capitalize" style={{ color: "var(--muted-foreground)" }}>
+                          {friend?.email}
+                        </p>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        className="border"
+                        style={{
+                          backgroundColor: "var(--secondary)",
+                          borderColor: "var(--border)",
+                          color: "var(--card-foreground)",
+                        }}
+                      >
+                        Message
+                      </Button>
+                    </div>
+                  )
+                })
+              )}
             </div>
           </ScrollArea>
         </div>

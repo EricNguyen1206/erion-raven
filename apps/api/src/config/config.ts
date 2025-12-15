@@ -36,6 +36,6 @@ export const config = {
     corsOrigin: process.env["WS_CORS_ORIGIN"]?.split(",") || ["http://localhost:3000"],
   },
   logging: {
-    level: process.env["LOG_LEVEL"] || "info",
+    level: "debug"// process.env["LOG_LEVEL"] || "debug",
   },
 };

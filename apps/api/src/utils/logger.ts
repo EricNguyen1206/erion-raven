@@ -23,7 +23,15 @@ class Logger {
 
   private formatMessage(level: LogLevel, message: string, meta?: any): string {
     const timestamp = new Date().toISOString();
-    const metaString = meta ? ` ${JSON.stringify(meta)}` : "";
+    let metaString = "";
+    if (meta) {
+      // Handle Error objects specially since JSON.stringify doesn't serialize them
+      if (meta instanceof Error) {
+        metaString = ` ${JSON.stringify({ message: meta.message, stack: meta.stack })}`;
+      } else {
+        metaString = ` ${JSON.stringify(meta)}`;
+      }
+    }
     return `[${timestamp}] ${level.toUpperCase()}: ${message}${metaString}`;
   }
 
