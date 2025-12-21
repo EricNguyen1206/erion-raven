@@ -123,13 +123,12 @@ export class WebSocketController {
       }
     });
 
-    // Send message
     socket.on(SocketEvent.SEND_MESSAGE, async (payload: SendMessagePayload) => {
       try {
         await this.wsService.handleSendMessage(
           userId,
           username,
-          payload.conversation_id.toString(),
+          payload.conversation_id,
           payload.text,
           payload.url,
           payload.fileName
@@ -162,7 +161,7 @@ export class WebSocketController {
   async getWebSocketStats(_req: Request, res: Response): Promise<void> {
     try {
       const onlineUsers = this.wsService.getOnlineUsers();
-      
+
       res.status(200).json({
         success: true,
         data: {

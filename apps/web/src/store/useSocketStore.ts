@@ -93,8 +93,25 @@ export const useSocketStore = create<SocketState>()(
           });
 
           return new Promise<void>((resolve, reject) => {
+            // Extract origin from API_BASE_URL to avoid "Invalid namespace" error
+            // Socket.IO client interprets the path in the URL as a namespace
+            let socketUrl = API_BASE_URL;
+            try {
+              if (API_BASE_URL.startsWith('http')) {
+                socketUrl = new URL(API_BASE_URL).origin;
+              } else {
+                // If it's a relative path (like /api/v1), use the current origin
+                socketUrl = window.location.origin;
+              }
+            } catch (err) {
+              console.error("Failed to parse API_BASE_URL, falling back to window.location.origin", err);
+              socketUrl = window.location.origin;
+            }
+
+            console.log("Connecting to Socket.IO at:", socketUrl);
+
             // Create Socket.IO client - cookies sent automatically with withCredentials
-            const socketInstance = io(API_BASE_URL, {
+            const socketInstance = io(socketUrl, {
               transports: ["websocket", "polling"],
               reconnection: true,
               reconnectionAttempts: 5,
@@ -206,7 +223,7 @@ export const useSocketStore = create<SocketState>()(
           // Dispatch custom event for components to listen to
           window.dispatchEvent(
             new CustomEvent("chat-message", {
-              detail: { message: payload, conversationId: payload.conversationId },
+              detail: payload,
             })
           );
         });
@@ -282,7 +299,7 @@ export const useSocketStore = create<SocketState>()(
 
         try {
           const payload = createSendMessagePayload(
-            parseInt(conversationId),
+            conversationId,
             text || null,
             url || null,
             fileName || null
@@ -304,7 +321,7 @@ export const useSocketStore = create<SocketState>()(
         }
 
         try {
-          const payload = createJoinConversationPayload(parseInt(conversationId));
+          const payload = createJoinConversationPayload(conversationId);
           socket.emit(SocketEvent.JOIN_CONVERSATION, payload);
 
           // Track joined conversation for automatic re-join on reconnect
@@ -329,7 +346,7 @@ export const useSocketStore = create<SocketState>()(
         }
 
         try {
-          const payload = createLeaveConversationPayload(parseInt(conversationId));
+          const payload = createLeaveConversationPayload(conversationId);
           socket.emit(SocketEvent.LEAVE_CONVERSATION, payload);
 
           // Untrack joined conversation

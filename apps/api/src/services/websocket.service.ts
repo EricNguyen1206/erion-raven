@@ -23,14 +23,14 @@ export class WebSocketService {
   // ============================================================================
   // Properties
   // ============================================================================
-  
+
   private clients = new Map<string, Socket>(); // userId -> Socket
   private rooms = new Map<string, Set<string>>(); // conversationId -> Set<userId>
-  
+
   // ============================================================================
   // Constructor
   // ============================================================================
-  
+
   constructor(
     private redisService: RedisService,
     private messageService: MessageService,
@@ -42,7 +42,7 @@ export class WebSocketService {
   // ============================================================================
   // CONNECTION MANAGEMENT
   // ============================================================================
-  
+
   /**
    * Register a new client connection
    * Handles reconnection by disconnecting old socket if exists
@@ -59,13 +59,13 @@ export class WebSocketService {
         });
         existingSocket.disconnect(true);
       }
-      
+
       // Store new connection
       this.clients.set(userId, socket);
-      
+
       // Set user online in Redis
       await this.redisService.setUserOnline(userId);
-      
+
       logger.info('Client registered', { userId, socketId: socket.id });
     } catch (error) {
       logger.error('Register client error:', error);
@@ -84,13 +84,13 @@ export class WebSocketService {
       await Promise.all(
         userRooms.map(roomId => this.leaveRoom(userId, roomId))
       );
-      
+
       // Remove from clients map
       this.clients.delete(userId);
-      
+
       // Set user offline in Redis
       await this.redisService.setUserOffline(userId);
-      
+
       logger.info('Client unregistered', { userId });
     } catch (error) {
       logger.error('Unregister client error:', error);
@@ -122,7 +122,7 @@ export class WebSocketService {
   // ============================================================================
   // ROOM MANAGEMENT
   // ============================================================================
-  
+
   /**
    * Join a conversation room
    * Validates conversation exists before joining
@@ -134,32 +134,32 @@ export class WebSocketService {
       if (!conversation) {
         throw new Error('Conversation not found');
       }
-      
+
       // Get or create room
       if (!this.rooms.has(conversationId)) {
         this.rooms.set(conversationId, new Set());
       }
-      
+
       const room = this.rooms.get(conversationId)!;
-      
+
       // Check if already in room
       if (room.has(userId)) {
         logger.debug('User already in room', { userId, conversationId });
         return;
       }
-      
+
       // Add user to room
       room.add(userId);
-      
+
       // Join Socket.IO room for efficient broadcasting
       const socket = this.getSocket(userId);
       if (socket) {
         socket.join(conversationId);
       }
-      
+
       // Persist to Redis
       await this.redisService.joinConversation(userId, conversationId);
-      
+
       logger.info('User joined room', { userId, conversationId, memberCount: room.size });
     } catch (error) {
       logger.error('Join room error:', error);
@@ -177,25 +177,25 @@ export class WebSocketService {
       if (!room) {
         return;
       }
-      
+
       // Remove user from room
       room.delete(userId);
-      
+
       // Cleanup empty rooms
       if (room.size === 0) {
         this.rooms.delete(conversationId);
         logger.debug('Room cleaned up (empty)', { conversationId });
       }
-      
+
       // Leave Socket.IO room
       const socket = this.getSocket(userId);
       if (socket) {
         socket.leave(conversationId);
       }
-      
+
       // Persist to Redis
       await this.redisService.leaveConversation(userId, conversationId);
-      
+
       logger.info('User left room', { userId, conversationId });
     } catch (error) {
       logger.error('Leave room error:', error);
@@ -243,7 +243,7 @@ export class WebSocketService {
   // ============================================================================
   // BROADCASTING
   // ============================================================================
-  
+
   /**
    * Broadcast event to all members in a conversation room
    * Optionally exclude sender
@@ -260,22 +260,22 @@ export class WebSocketService {
         logger.warn('No members in room', { conversationId, event });
         return;
       }
-      
+
       let sentCount = 0;
-      
+
       for (const userId of room) {
         // Skip excluded user
         if (excludeUserId && userId === excludeUserId) {
           continue;
         }
-        
+
         const socket = this.getSocket(userId);
         if (socket) {
           socket.emit(event as any, payload);
           sentCount++;
         }
       }
-      
+
       logger.debug('Broadcasted to room', {
         conversationId,
         event,
@@ -304,7 +304,7 @@ export class WebSocketService {
   // ============================================================================
   // BUSINESS LOGIC
   // ============================================================================
-  
+
   /**
    * Handle sending a message in a conversation
    * Validates content, saves to DB, and broadcasts to room
@@ -322,7 +322,7 @@ export class WebSocketService {
       if (!text && !url && !fileName) {
         throw new Error('Message must have text, url, or fileName');
       }
-      
+
       // Prepare message data
       const messageData: {
         conversationId: string;
@@ -332,14 +332,14 @@ export class WebSocketService {
       } = {
         conversationId,
       };
-      
+
       if (text) messageData.text = text;
       if (url) messageData.url = url;
       if (fileName) messageData.fileName = fileName;
-      
+
       // Save message to database
       const savedMessage = await this.messageService.createMessage(senderId, messageData);
-      
+
       // Create message DTO for broadcasting (using centralized types)
       const messageDto: MessageDto = createMessageDto(
         savedMessage.id,
@@ -352,10 +352,10 @@ export class WebSocketService {
         fileName,
         savedMessage.createdAt
       );
-      
+
       // Broadcast to all conversation members (including sender for confirmation)
       this.broadcastToRoom(conversationId, SocketEvent.NEW_MESSAGE, messageDto);
-      
+
       logger.info('Message sent', {
         conversationId,
         senderId,
@@ -374,22 +374,20 @@ export class WebSocketService {
   async handleJoinConversation(
     userId: string,
     username: string,
-    conversationId: number
+    conversationId: string
   ): Promise<void> {
     try {
-      const conversationIdStr = conversationId.toString();
-      
       // Join the room
-      await this.joinRoom(userId, conversationIdStr);
-      
+      await this.joinRoom(userId, conversationId);
+
       // Emit success to user (using centralized payload creator)
-      const joinedPayload = createJoinedConversationPayload(conversationId, parseInt(userId), username);
+      const joinedPayload = createJoinedConversationPayload(conversationId, userId, username);
       this.emitToUser(userId, SocketEvent.JOINED_CONVERSATION, joinedPayload);
-      
+
       // Notify other participants
-      const userJoinedPayload = createUserJoinedPayload(conversationId, parseInt(userId), username);
-      this.broadcastToRoom(conversationIdStr, SocketEvent.USER_JOINED, userJoinedPayload, userId);
-      
+      const userJoinedPayload = createUserJoinedPayload(conversationId, userId, username);
+      this.broadcastToRoom(conversationId, SocketEvent.USER_JOINED, userJoinedPayload, userId);
+
       logger.info('User joined conversation', { userId, conversationId });
     } catch (error) {
       logger.error('Handle join conversation error:', error);
@@ -404,22 +402,20 @@ export class WebSocketService {
   async handleLeaveConversation(
     userId: string,
     username: string,
-    conversationId: number
+    conversationId: string
   ): Promise<void> {
     try {
-      const conversationIdStr = conversationId.toString();
-      
       // Leave the room
-      await this.leaveRoom(userId, conversationIdStr);
-      
+      await this.leaveRoom(userId, conversationId);
+
       // Emit success to user
-      const leftPayload = createLeftConversationPayload(conversationId, parseInt(userId), username);
+      const leftPayload = createLeftConversationPayload(conversationId, userId, username);
       this.emitToUser(userId, SocketEvent.LEFT_CONVERSATION, leftPayload);
-      
+
       // Notify other participants
-      const userLeftPayload = createUserLeftPayload(conversationId, parseInt(userId), username);
-      this.broadcastToRoom(conversationIdStr, SocketEvent.USER_LEFT, userLeftPayload, userId);
-      
+      const userLeftPayload = createUserLeftPayload(conversationId, userId, username);
+      this.broadcastToRoom(conversationId, SocketEvent.USER_LEFT, userLeftPayload, userId);
+
       logger.info('User left conversation', { userId, conversationId });
     } catch (error) {
       logger.error('Handle leave conversation error:', error);

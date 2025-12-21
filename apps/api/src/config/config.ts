@@ -26,14 +26,14 @@ export const config = {
     refreshExpire: process.env["JWT_REFRESH_EXPIRE"] || "30d",
   },
   cors: {
-    origin: process.env["CORS_ORIGIN"]?.split(",") || ["http://localhost:3000"],
+    origin: process.env["CORS_ORIGIN"]?.split(",") || ["http://localhost:3000", "http://localhost:3001"],
   },
   rateLimit: {
     windowMs: parseInt(process.env["RATE_LIMIT_WINDOW_MS"] || "900000", 10), // 15 minutes
     maxRequests: parseInt(process.env["RATE_LIMIT_MAX_REQUESTS"] || "100", 10),
   },
   websocket: {
-    corsOrigin: process.env["WS_CORS_ORIGIN"]?.split(",") || ["http://localhost:3000"],
+    corsOrigin: process.env["WS_CORS_ORIGIN"]?.split(",") || ["http://localhost:3000", "http://localhost:3001"],
   },
   logging: {
     level: "debug"// process.env["LOG_LEVEL"] || "debug",

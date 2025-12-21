@@ -118,7 +118,7 @@ const LoginForm = () => {
               ref={passwordRef}
               id="password"
               type="password"
-              defaultValue="admin123"
+              defaultValue="password123"
               onFocus={handleInputFocus}
               className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
               required

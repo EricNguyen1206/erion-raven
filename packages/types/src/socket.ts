@@ -60,22 +60,22 @@ export interface SocketMessage<T = any> {
 // ============================================================================
 
 export interface JoinConversationPayload {
-  conversation_id: number;
+  conversation_id: string;
 }
 
 export interface LeaveConversationPayload {
-  conversation_id: number;
+  conversation_id: string;
 }
 
 export interface JoinedConversationPayload {
-  conversation_id: number;
-  user_id: number;
+  conversation_id: string;
+  user_id: string;
   username: string;
 }
 
 export interface LeftConversationPayload {
-  conversation_id: number;
-  user_id: number;
+  conversation_id: string;
+  user_id: string;
   username: string;
 }
 
@@ -84,7 +84,7 @@ export interface LeftConversationPayload {
 // ============================================================================
 
 export interface SendMessagePayload {
-  conversation_id: number;
+  conversation_id: string;
   text?: string | null;
   url?: string | null;
   fileName?: string | null;
@@ -98,14 +98,14 @@ export interface SendMessagePayload {
 // ============================================================================
 
 export interface UserJoinedPayload {
-  conversation_id: number;
-  user_id: number;
+  conversation_id: string;
+  user_id: string;
   username: string;
 }
 
 export interface UserLeftPayload {
-  conversation_id: number;
-  user_id: number;
+  conversation_id: string;
+  user_id: string;
   username: string;
 }
 
@@ -155,21 +155,21 @@ export function createSocketMessage<T>(data: T): SocketMessage<T> {
 }
 
 
-export function createJoinConversationPayload(conversationId: number): JoinConversationPayload {
+export function createJoinConversationPayload(conversationId: string): JoinConversationPayload {
   return {
     conversation_id: conversationId,
   };
 }
 
-export function createLeaveConversationPayload(conversationId: number): LeaveConversationPayload {
+export function createLeaveConversationPayload(conversationId: string): LeaveConversationPayload {
   return {
     conversation_id: conversationId,
   };
 }
 
 export function createJoinedConversationPayload(
-  conversationId: number,
-  userId: number,
+  conversationId: string,
+  userId: string,
   username: string
 ): JoinedConversationPayload {
   return {
@@ -180,8 +180,8 @@ export function createJoinedConversationPayload(
 }
 
 export function createLeftConversationPayload(
-  conversationId: number,
-  userId: number,
+  conversationId: string,
+  userId: string,
   username: string
 ): LeftConversationPayload {
   return {
@@ -192,7 +192,7 @@ export function createLeftConversationPayload(
 }
 
 export function createSendMessagePayload(
-  conversationId: number,
+  conversationId: string,
   text?: string | null,
   url?: string | null,
   fileName?: string | null
@@ -240,8 +240,8 @@ export function createMessageDto(
 }
 
 export function createUserJoinedPayload(
-  conversationId: number,
-  userId: number,
+  conversationId: string,
+  userId: string,
   username: string
 ): UserJoinedPayload {
   return {
@@ -252,8 +252,8 @@ export function createUserJoinedPayload(
 }
 
 export function createUserLeftPayload(
-  conversationId: number,
-  userId: number,
+  conversationId: string,
+  userId: string,
   username: string
 ): UserLeftPayload {
   return {
@@ -286,17 +286,17 @@ export function generateMessageId(): string {
 
 
 export function isJoinConversationPayload(payload: any): payload is JoinConversationPayload {
-  return typeof payload === "object" && typeof payload.conversation_id === "number";
+  return typeof payload === "object" && typeof payload.conversation_id === "string";
 }
 
 export function isLeaveConversationPayload(payload: any): payload is LeaveConversationPayload {
-  return typeof payload === "object" && typeof payload.conversation_id === "number";
+  return typeof payload === "object" && typeof payload.conversation_id === "string";
 }
 
 export function isSendMessagePayload(payload: any): payload is SendMessagePayload {
   return (
     typeof payload === "object" &&
-    typeof payload.conversation_id === "number" &&
+    typeof payload.conversation_id === "string" &&
     (payload.text !== undefined || payload.url !== undefined || payload.fileName !== undefined)
   );
 }

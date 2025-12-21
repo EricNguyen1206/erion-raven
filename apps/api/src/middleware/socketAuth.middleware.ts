@@ -14,9 +14,14 @@ export interface AuthenticatedSocket extends Socket {
 export const socketAuthMiddleware = async (socket: AuthenticatedSocket, next: NextFunction) => {
   try {
     // Get token from handshake auth (matching Socket.IO best practices)
-    const cookies = socket.handshake.headers.cookie
+    const cookiesString = socket.handshake.headers.cookie;
 
-    const token = cookies?.split(';').find((cookie) => cookie.startsWith('accessToken='))?.split('=')[1];
+    // Improved cookie parsing: trim spaces and find the exact accessToken key
+    const token = cookiesString
+      ?.split(';')
+      .map(c => c.trim())
+      .find(cookie => cookie.startsWith('accessToken='))
+      ?.split('=')[1];
 
     if (!token) {
       logger.warn('Socket connection rejected: No token provided', { socketId: socket.id });
