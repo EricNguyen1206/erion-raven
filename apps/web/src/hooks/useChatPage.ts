@@ -242,27 +242,13 @@ export const useMessageSending = (
   scrollToBottom: () => void
 ) => {
   const { sendMessage, isConnected, error } = useSocketStore();
-  const { addMessageToConversation } = useChatStore();
 
   // Handle sending messages
   const handleSendMessage = useCallback(
     async (message: string) => {
       if (sessionUser?.id && message !== "" && conversationId && isConnected()) {
         try {
-          // Optimistic update
-          const tempId = `temp-${Date.now()}`;
-          const optimisticMessage: Message = {
-            id: tempId,
-            conversationId: String(conversationId),
-            senderId: String(sessionUser.id),
-            senderName: sessionUser.username,
-            senderAvatar: sessionUser.avatar,
-            text: message,
-            createdAt: new Date().toISOString(),
-          };
-
-          addMessageToConversation(String(conversationId), optimisticMessage);
-
+          // Send message via WebSocket (server will broadcast it back)
           sendMessage(conversationId, message);
           setFormData({ message: "" });
           scrollToBottom();
@@ -273,7 +259,7 @@ export const useMessageSending = (
         toast.warn("Not connected to chat server");
       }
     },
-    [sessionUser, conversationId, isConnected, sendMessage, setFormData, scrollToBottom, addMessageToConversation]
+    [sessionUser, conversationId, isConnected, sendMessage, setFormData, scrollToBottom]
   );
 
   // Show error notifications

@@ -8,7 +8,7 @@ import { ConnectionState } from "@/store/useSocketStore";
 
 const ConversationPage = () => {
   const {
-    user,
+    sessionUser,
     conversationId,
     currentConversation,
     conversationData,
@@ -32,7 +32,7 @@ const ConversationPage = () => {
         participantCount={memberCount}
         members={conversationData?.members as any}
         ownerId={conversationData?.ownerId as any}
-        {...(user?.id !== undefined && { currentUserId: user.id })}
+        {...(sessionUser?.id !== undefined && { currentUserId: sessionUser.id })}
       />
 
       {/* Connection status indicator */}
@@ -53,9 +53,9 @@ const ConversationPage = () => {
           <MessagesSkeleton isGroup={true} />
         ) : (
           <div className="space-y-0">
-            {user?.id &&
+            {sessionUser?.id &&
               chats.map((message) => (
-                <MessageBubble key={message.id} content={message.text ?? ""} variant={message.senderId === user.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />
+                <MessageBubble key={message.id} content={message.text ?? ""} variant={message.senderId === sessionUser.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />
               ))}
             <div ref={mainRef} className="h-0" />
           </div>
