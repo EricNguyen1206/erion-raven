@@ -35,24 +35,30 @@ const ConversationPage = () => {
         {...(sessionUser?.id !== undefined && { currentUserId: sessionUser.id })}
       />
 
-      {/* Connection status indicator */}
+      {/* Connection status indicator - Nordic minimalism: subtle and calm */}
       {connectionState === ConnectionState.CONNECTING && (
-        <div className="px-5 py-2 bg-blue-50 border-b border-blue-200">
-          <div className="text-sm text-blue-600">Connecting to chat server...</div>
+        <div className="px-8 py-3 bg-accent/5 border-b border-accent/10">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-pulse" />
+            <span className="text-xs font-light text-foreground/60 tracking-wide">Connecting...</span>
+          </div>
         </div>
       )}
 
       {connectionState === ConnectionState.ERROR && (
-        <div className="px-chat-outer py-2 bg-red-50 border-b border-red-200">
-          <div className="text-sm text-chat-error font-normal">Connection error</div>
+        <div className="px-8 py-3 bg-destructive/5 border-b border-destructive/10">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-destructive/60" />
+            <span className="text-xs font-light text-destructive/80 tracking-wide">Connection issue</span>
+          </div>
         </div>
       )}
 
-      <ScrollArea ref={containerRef} className="flex-1 p-chat-outer">
+      <ScrollArea ref={containerRef} className="flex-1 px-8 py-6">
         {chatsLoading ? (
           <MessagesSkeleton isGroup={true} />
         ) : (
-          <div className="space-y-0">
+          <div className="space-y-1 max-w-4xl mx-auto">
             {sessionUser?.id &&
               chats.map((message) => (
                 <MessageBubble key={message.id} content={message.text ?? ""} variant={message.senderId === sessionUser.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />

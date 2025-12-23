@@ -73,40 +73,52 @@ export default function MessageInput({
   };
 
   return (
-    <div className="p-chat-outer bg-background border-t border-chat-border">
-      {/* Connection status indicator */}
+    <div className="px-8 py-5 bg-background border-t border-border/30">
+      {/* Connection status indicator - Nordic minimalism: subtle inline warning */}
       {!isConnected && (
-        <div className="mb-2 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-chat px-3 py-1 font-normal">
-          Not connected to chat server
+        <div className="mb-3 text-xs font-light text-accent/70 bg-accent/5 border border-accent/10 rounded-lg px-4 py-2 tracking-wide">
+          Not connected
         </div>
       )}
 
-      <div className="h-[40px] flex items-center space-x-3">
-        <div className="flex-1 w-full">
-          <div className="h-[40px] flex items-center space-x-2 bg-input-background border border-chat-border rounded-chat px-3 py-2 w-full focus-within:border-chat-primary transition-colors">
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-chat-accent/10 cursor-not-allowed">
-              <Paperclip className="w-4 h-4 text-muted-foreground" />
+      <div className="flex items-center gap-3 max-w-4xl mx-auto">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 bg-background border border-border/30 rounded-xl px-4 py-3 focus-within:border-primary/30 transition-all duration-200">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 rounded-lg hover:bg-accent/5 transition-all duration-200 cursor-not-allowed opacity-40"
+            >
+              <Paperclip className="w-[16px] h-[16px]" />
             </Button>
+
             <input
               type="text"
               ref={messageRef}
-              placeholder={disabled ? "Chat disabled" : !isConnected ? "Connecting..." : "Type a message..."}
+              placeholder={disabled ? "Disconnected" : !isConnected ? "Connecting..." : "Type a message"}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               disabled={disabled || !isConnected}
-              className="flex-1 bg-transparent outline-none resize-none disabled:cursor-not-allowed disabled:text-gray-400 font-normal text-base"
+              className="flex-1 bg-transparent outline-none resize-none disabled:cursor-not-allowed disabled:opacity-40 font-light text-sm tracking-wide placeholder:text-muted-foreground/40"
             />
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-chat-accent/10 cursor-not-allowed">
-              <Smile className="w-4 h-4 text-muted-foreground" />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 rounded-lg hover:bg-accent/5 transition-all duration-200 cursor-not-allowed opacity-40"
+            >
+              <Smile className="w-[16px] h-[16px]" />
             </Button>
           </div>
         </div>
+
         <Button
           onClick={handleSend}
           disabled={!getMessageValue().trim() || disabled || !isConnected}
-          className="h-10 w-10 p-0 bg-chat-primary hover:bg-chat-secondary disabled:bg-gray-300 rounded-chat"
+          size="icon"
+          className="h-11 w-11 shrink-0 bg-primary hover:bg-primary/90 disabled:bg-muted/30 disabled:opacity-40 rounded-xl transition-all duration-200 shadow-none"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-[18px] h-[18px]" />
         </Button>
       </div>
     </div>

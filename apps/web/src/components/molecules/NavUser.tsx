@@ -51,56 +51,65 @@ const NavUser = () => {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="h-[40px] data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-lg"
+              className="h-12 px-3 data-[state=open]:bg-sidebar-accent/5 rounded-xl transition-all duration-200 hover:bg-sidebar-accent/5"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 {user && <AvatarImage src={user.avatar || undefined} alt={user.username} />}
-                <AvatarFallback className="rounded-lg">
+                <AvatarFallback className="rounded-lg bg-sidebar-accent/20 text-sidebar-foreground/60 text-sm font-light">
                   {user?.username?.[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.username ?? (isLoading ? "Loading..." : "User")}</span>
-                <span className="truncate text-xs">{user?.email ?? ""}</span>
+              <div className="grid flex-1 text-left text-sm leading-relaxed">
+                <span className="truncate font-light text-sidebar-foreground">{user?.username ?? (isLoading ? "Loading..." : "User")}</span>
+                <span className="truncate text-xs font-light text-muted-foreground/50">{user?.email ?? ""}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto h-4 w-4 opacity-40" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg border-gray-200 bg-white dark:bg-primary-purple"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl border-sidebar-border/50 bg-sidebar shadow-lg backdrop-blur-sm"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={8}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+              <div className="flex items-center gap-3 px-3 py-3 text-left text-sm">
+                <Avatar className="h-9 w-9 rounded-lg">
                   {user && <AvatarImage src={user.avatar || undefined} alt={user.username} />}
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className="rounded-lg bg-sidebar-accent/20 text-sidebar-foreground/60 text-sm font-light">
                     {user?.username?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user?.username ?? (isLoading ? "Loading..." : "User")}</span>
-                  <span className="truncate text-xs">{user?.email ?? ""}</span>
+                <div className="grid flex-1 text-left text-sm leading-relaxed">
+                  <span className="truncate font-light text-sidebar-foreground">{user?.username ?? (isLoading ? "Loading..." : "User")}</span>
+                  <span className="truncate text-xs font-light text-muted-foreground/50">{user?.email ?? ""}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => setIsProfileDialogOpen(true)}>
-                <BadgeCheck />
-                Account
+            <DropdownMenuSeparator className="bg-sidebar-border/30" />
+            <DropdownMenuGroup className="p-1">
+              <DropdownMenuItem
+                onClick={() => setIsProfileDialogOpen(true)}
+                className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 cursor-pointer py-2.5 gap-3"
+              >
+                <BadgeCheck className="w-[16px] h-[16px] opacity-50" />
+                <span className="font-light text-sm">Account</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                {theme === "dark" ? "Light Mode" : "Dark Mode"}
+              <DropdownMenuItem
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 cursor-pointer py-2.5 gap-3"
+              >
+                {theme === "dark" ? <Sun className="w-[16px] h-[16px] opacity-50" /> : <Moon className="w-[16px] h-[16px] opacity-50" />}
+                <span className="font-light text-sm">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut />
-              Log out
+            <DropdownMenuSeparator className="bg-sidebar-border/30" />
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="m-1 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 cursor-pointer py-2.5 gap-3 text-destructive/80 hover:text-destructive"
+            >
+              <LogOut className="w-[16px] h-[16px]" />
+              <span className="font-light text-sm">Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

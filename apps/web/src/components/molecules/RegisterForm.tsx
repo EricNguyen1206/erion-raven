@@ -99,10 +99,10 @@ const RegisterForm = () => {
 
   const isLoading = signupMutation.isPending;
 
-  // Error styling for inputs
+  // Error styling for inputs - Nordic minimalism: subtle error indication
   const inputErrorClass = hasError
-    ? "border-destructive focus:ring-destructive"
-    : "border-primary";
+    ? "border-destructive/40 focus-visible:border-destructive/60"
+    : "border-border/30 focus-visible:border-primary/40";
 
   const handleInputFocus = () => {
     if (hasError) {
@@ -111,22 +111,22 @@ const RegisterForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md border-0 shadow-lg bg-card">
-      <CardHeader className="space-y-3 pb-6">
-        <CardTitle className="text-3xl font-light tracking-tight text-card-foreground">
+    <Card className="w-full max-w-md border-none shadow-none bg-card/50 backdrop-blur-sm">
+      <CardHeader className="space-y-4 pb-8">
+        <CardTitle className="text-3xl font-light tracking-wide text-foreground">
           Create account
         </CardTitle>
-        <CardDescription className="text-base leading-relaxed text-muted-foreground">
+        <CardDescription className="text-sm font-light leading-relaxed text-muted-foreground/60 tracking-wide">
           Enter your information to get started
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label
               htmlFor="name"
-              className={`text-sm font-normal ${hasError ? "text-destructive" : "text-muted-foreground"}`}
+              className={`text-xs font-light tracking-wide uppercase ${hasError ? "text-destructive/70" : "text-muted-foreground/60"}`}
             >
               Full name
             </Label>
@@ -136,17 +136,17 @@ const RegisterForm = () => {
               placeholder="John Doe"
               ref={nameRef}
               onFocus={handleInputFocus}
-              className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
+              className={`h-11 rounded-lg text-sm font-light bg-background/50 transition-all duration-200 ${inputErrorClass}`}
               required
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">Minimum 3 characters</p>
+            <p className="text-[10px] font-light text-muted-foreground/50 tracking-wide pt-1">Minimum 3 characters</p>
           </div>
 
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className={`text-sm font-normal ${hasError ? "text-destructive" : "text-muted-foreground"}`}
+              className={`text-xs font-light tracking-wide uppercase ${hasError ? "text-destructive/70" : "text-muted-foreground/60"}`}
             >
               Email
             </Label>
@@ -156,7 +156,7 @@ const RegisterForm = () => {
               placeholder="name@example.com"
               ref={emailRef}
               onFocus={handleInputFocus}
-              className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
+              className={`h-11 rounded-lg text-sm font-light bg-background/50 transition-all duration-200 ${inputErrorClass}`}
               required
               disabled={isLoading}
             />
@@ -165,7 +165,7 @@ const RegisterForm = () => {
           <div className="space-y-2">
             <Label
               htmlFor="password"
-              className={`text-sm font-normal ${hasError ? "text-destructive" : "text-muted-foreground"}`}
+              className={`text-xs font-light tracking-wide uppercase ${hasError ? "text-destructive/70" : "text-muted-foreground/60"}`}
             >
               Password
             </Label>
@@ -175,16 +175,16 @@ const RegisterForm = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onFocus={handleInputFocus}
-              className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
+              className={`h-11 rounded-lg text-sm font-light bg-background/50 transition-all duration-200 ${inputErrorClass}`}
               required
               disabled={isLoading}
             />
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
             <Label
               htmlFor="confirmPassword"
-              className={`text-sm font-normal ${hasError ? "text-destructive" : "text-muted-foreground"}`}
+              className={`text-xs font-light tracking-wide uppercase ${hasError ? "text-destructive/70" : "text-muted-foreground/60"}`}
             >
               Confirm password
             </Label>
@@ -194,69 +194,73 @@ const RegisterForm = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               onFocus={handleInputFocus}
-              className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
+              className={`h-11 rounded-lg text-sm font-light bg-background/50 transition-all duration-200 ${inputErrorClass}`}
               required
               disabled={isLoading}
             />
 
-            <div className="space-y-2 pt-3">
-              <div className="flex items-center gap-2">
+            <div className="space-y-2.5 pt-4">
+              <div className="flex items-center gap-2.5">
                 <div
-                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all"
+                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-200"
                   style={{
-                    borderColor: hasMinLength ? "#f25042" : "#8c7851",
-                    backgroundColor: hasMinLength ? "#f25042" : "transparent",
+                    borderColor: hasMinLength ? "var(--accent)" : "var(--border)",
+                    backgroundColor: hasMinLength ? "var(--accent)" : "transparent",
+                    opacity: hasMinLength ? 0.9 : 0.3,
                   }}
                 >
-                  {hasMinLength && <Check className="h-3 w-3" style={{ color: "#fffffe" }} />}
+                  {hasMinLength && <Check className="h-3 w-3" style={{ color: "var(--accent-foreground)" }} />}
                 </div>
-                <span className="text-xs font-light" style={{ color: hasMinLength ? "#020826" : "#716040" }}>
-                  Password must have min length 6 characters
+                <span className="text-[11px] font-light tracking-wide" style={{ color: hasMinLength ? "var(--foreground)" : "var(--muted-foreground)", opacity: hasMinLength ? 0.8 : 0.5 }}>
+                  Min 6 characters
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <div
-                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all"
+                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-200"
                   style={{
-                    borderColor: hasNumber ? "#f25042" : "#8c7851",
-                    backgroundColor: hasNumber ? "#f25042" : "transparent",
+                    borderColor: hasNumber ? "var(--accent)" : "var(--border)",
+                    backgroundColor: hasNumber ? "var(--accent)" : "transparent",
+                    opacity: hasNumber ? 0.9 : 0.3,
                   }}
                 >
-                  {hasNumber && <Check className="h-3 w-3" style={{ color: "#fffffe" }} />}
+                  {hasNumber && <Check className="h-3 w-3" style={{ color: "var(--accent-foreground)" }} />}
                 </div>
-                <span className="text-xs font-light" style={{ color: hasNumber ? "#020826" : "#716040" }}>
-                  Password must contain number
+                <span className="text-[11px] font-light tracking-wide" style={{ color: hasNumber ? "var(--foreground)" : "var(--muted-foreground)", opacity: hasNumber ? 0.8 : 0.5 }}>
+                  Contains number
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <div
-                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all"
+                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-200"
                   style={{
-                    borderColor: hasAlphabet ? "#f25042" : "#8c7851",
-                    backgroundColor: hasAlphabet ? "#f25042" : "transparent",
+                    borderColor: hasAlphabet ? "var(--accent)" : "var(--border)",
+                    backgroundColor: hasAlphabet ? "var(--accent)" : "transparent",
+                    opacity: hasAlphabet ? 0.9 : 0.3,
                   }}
                 >
-                  {hasAlphabet && <Check className="h-3 w-3" style={{ color: "#fffffe" }} />}
+                  {hasAlphabet && <Check className="h-3 w-3" style={{ color: "var(--accent-foreground)" }} />}
                 </div>
-                <span className="text-xs font-light" style={{ color: hasAlphabet ? "#020826" : "#716040" }}>
-                  Password must contain alphabet character
+                <span className="text-[11px] font-light tracking-wide" style={{ color: hasAlphabet ? "var(--foreground)" : "var(--muted-foreground)", opacity: hasAlphabet ? 0.8 : 0.5 }}>
+                  Contains letter
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <div
-                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all"
+                  className="flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-200"
                   style={{
-                    borderColor: hasConfirmPassword ? "#f25042" : "#8c7851",
-                    backgroundColor: hasConfirmPassword ? "#f25042" : "transparent",
+                    borderColor: hasConfirmPassword ? "var(--accent)" : "var(--border)",
+                    backgroundColor: hasConfirmPassword ? "var(--accent)" : "transparent",
+                    opacity: hasConfirmPassword ? 0.9 : 0.3,
                   }}
                 >
-                  {hasConfirmPassword && <Check className="h-3 w-3" style={{ color: "#fffffe" }} />}
+                  {hasConfirmPassword && <Check className="h-3 w-3" style={{ color: "var(--accent-foreground)" }} />}
                 </div>
-                <span className="text-xs font-light" style={{ color: hasConfirmPassword ? "#020826" : "#716040" }}>
-                  Confirm password must match
+                <span className="text-[11px] font-light tracking-wide" style={{ color: hasConfirmPassword ? "var(--foreground)" : "var(--muted-foreground)", opacity: hasConfirmPassword ? 0.8 : 0.5 }}>
+                  Passwords match
                 </span>
               </div>
             </div>
@@ -264,13 +268,13 @@ const RegisterForm = () => {
 
           <Button
             type="submit"
-            className="w-full h-11 text-base font-normal mt-6 bg-accent text-accent-foreground hover:bg-accent/90 rounded-sm disabled:opacity-70"
+            className="w-full h-11 text-sm font-light tracking-wide mt-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg disabled:opacity-40 transition-all duration-200 shadow-none"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin opacity-60" />
+                Creating account
               </>
             ) : (
               "Create account"
@@ -279,10 +283,10 @@ const RegisterForm = () => {
         </form>
       </CardContent>
 
-      <CardFooter className="flex justify-center pt-2">
-        <p className="text-sm text-muted-foreground">
+      <CardFooter className="flex justify-center pt-6">
+        <p className="text-xs font-light text-muted-foreground/60 tracking-wide">
           {"Already have an account? "}
-          <Link to="/login" className="font-medium text-accent hover:underline">
+          <Link to="/login" className="text-accent/80 hover:text-accent transition-colors">
             Sign in
           </Link>
         </p>

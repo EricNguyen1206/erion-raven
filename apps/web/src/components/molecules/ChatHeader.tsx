@@ -114,66 +114,69 @@ export default function ChatHeader(chat: ChatHeaderProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between p-chat-outer bg-background border-b border-t border-chat-border">
+      <div className="flex items-center justify-between px-8 py-5 bg-background border-b border-border/30">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-auto p-0 hover:bg-transparent focus:bg-transparent">
-              <div className="flex items-center space-x-3 cursor-pointer hover:bg-accent/50 rounded-lg p-2 transition-colors">
+              <div className="flex items-center gap-3 cursor-pointer hover:bg-accent/5 rounded-lg px-3 py-2 transition-all duration-200">
                 <div>
-                  <h2 className="font-medium text-foreground">{`#${chat.name}`}</h2>
+                  <h2 className="font-light text-base text-foreground tracking-wide">{chat.isGroup ? `#${chat.name}` : chat.name}</h2>
                   {chat.isGroup ? (
-                    <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                      <Users className="w-3 h-3" />
-                      <span className="font-normal">{chat.participantCount} members</span>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground/60 mt-0.5">
+                      <Users className="w-3 h-3 opacity-50" />
+                      <span className="font-light">{chat.participantCount} members</span>
                     </div>
                   ) : (
-                    <p className="text-sm text-chat-accent font-normal">{chat.isOnline ? "Online" : "Offline"}</p>
+                    <div className="flex items-center gap-2 text-xs mt-0.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${chat.isOnline ? "bg-accent/70" : "bg-muted-foreground/30"}`} />
+                      <span className="font-light text-muted-foreground/60">{chat.isOnline ? "Online" : "Offline"}</span>
+                    </div>
                   )}
                 </div>
-                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground/40 ml-2" />
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuItem onClick={handleViewMembers}>
-              <Eye className="mr-2 h-4 w-4" />
-              <span>View members</span>
+          <DropdownMenuContent align="start" className="w-56 rounded-xl border-border/50 shadow-lg">
+            <DropdownMenuItem onClick={handleViewMembers} className="rounded-lg py-2.5 gap-3 cursor-pointer">
+              <Eye className="w-[16px] h-[16px] opacity-50" />
+              <span className="font-light text-sm">View members</span>
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-border/30" />
 
             {isOwner ? (
               <DropdownMenuItem
                 onClick={handleDeleteConversation}
-                className="text-red-600 focus:text-red-600"
+                className="rounded-lg py-2.5 gap-3 cursor-pointer text-destructive/80 focus:text-destructive hover:bg-destructive/5"
                 disabled={deleteConversationMutation.isPending}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>{deleteConversationMutation.isPending ? "Deleting..." : "Delete conversation"}</span>
+                <Trash2 className="w-[16px] h-[16px]" />
+                <span className="font-light text-sm">{deleteConversationMutation.isPending ? "Deleting..." : "Delete conversation"}</span>
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem
                 onClick={handleLeaveConversation}
-                className="text-orange-600 focus:text-orange-600"
+                className="rounded-lg py-2.5 gap-3 cursor-pointer text-accent/80 focus:text-accent hover:bg-accent/5"
                 disabled={leaveConversationMutation.isPending}
               >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>{leaveConversationMutation.isPending ? "Leaving..." : "Leave conversation"}</span>
+                <LogOut className="w-[16px] h-[16px]" />
+                <span className="font-light text-sm">{leaveConversationMutation.isPending ? "Leaving..." : "Leave conversation"}</span>
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-chat-accent/10 cursor-not-allowed">
-                  <Video className="w-4 h-4 text-muted-foreground" />
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-lg hover:bg-accent/5 transition-all duration-200 cursor-not-allowed">
+                  <Video className="w-[18px] h-[18px] text-muted-foreground/40" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Upcomming feature</p>
+              <TooltipContent className="rounded-lg border-border/50 bg-background shadow-lg">
+                <p className="text-xs font-light">Upcoming feature</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

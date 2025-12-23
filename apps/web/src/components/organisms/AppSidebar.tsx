@@ -31,45 +31,53 @@ export function AppSidebar() {
   } = useSidebarActions();
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
-      {/* Team Header */}
-      <SidebarHeader className="h-12 flex-row items-center gap-3 px-2 border-b border-border transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+    <Sidebar collapsible="icon" className="border-none bg-sidebar">
+      {/* Team Header - Nordic minimalism: sticky at top, no border, generous spacing */}
+      <SidebarHeader className="sticky top-0 z-50 h-16 flex-row items-center gap-4 px-6 bg-sidebar/95 backdrop-blur-sm transition-all duration-300 ease-out group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:justify-center">
         <img
           src="/logo.png"
           alt="Raven Logo"
-          width={32}
-          height={32}
-          className="w-8 h-8 min-w-8 min-h-8 rounded object-contain flex-shrink-0 transition-transform duration-200 bg-background dark:bg-primary"
+          width={28}
+          height={28}
+          className="w-7 h-7 min-w-7 min-h-7 rounded-md object-contain flex-shrink-0 transition-all duration-300 ease-out opacity-80 hover:opacity-100"
         />
-        <h1 className="font-bold text-lg tracking-tight text-sidebar-foreground whitespace-nowrap overflow-hidden transition-all duration-200 ease-linear group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+        <h1 className="font-light text-base tracking-wide text-sidebar-foreground/90 whitespace-nowrap overflow-hidden transition-all duration-300 ease-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
           Raven
         </h1>
       </SidebarHeader>
 
-      {/* Search Section */}
+      {/* Search Section - Uncomment when needed */}
       {/* <SearchSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} /> */}
 
-      <SidebarContent>
-        {/* Navigation Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground">
-            Navigation
+      <SidebarContent className="px-3">
+        {/* Navigation Section - Subtle, spacious */}
+        <SidebarGroup className="mb-8">
+          <SidebarGroupLabel className="text-[11px] uppercase tracking-widest font-light text-muted-foreground/60 mb-3 px-3">
+            Navigate
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Home">
-                  <Link to="/">
-                    <Home className="w-4 h-4" />
-                    <span>Home</span>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Home"
+                  className="h-9 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 data-[active=true]:bg-sidebar-accent/10"
+                >
+                  <Link to="/" className="flex items-center gap-3">
+                    <Home className="w-[18px] h-[18px] opacity-60" />
+                    <span className="text-sm font-light">Home</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Contacts">
-                  <Link to="/contacts">
-                    <Users className="w-4 h-4" />
-                    <span>Contacts</span>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Contacts"
+                  className="h-9 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 data-[active=true]:bg-sidebar-accent/10"
+                >
+                  <Link to="/contacts" className="flex items-center gap-3">
+                    <Users className="w-[18px] h-[18px] opacity-60" />
+                    <span className="text-sm font-light">Contacts</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -90,13 +98,13 @@ export function AppSidebar() {
         />
       </SidebarContent>
 
-      {/* User Profile Section */}
-      <SidebarFooter className="border-t border-border bg-secondary">
+      {/* User Profile Section - Clean, no heavy borders, sticky at bottom */}
+      <SidebarFooter className="sticky bottom-0 z-50 border-none pt-4 pb-4 px-3 mt-auto bg-sidebar/95 backdrop-blur-sm">
         <NavUser />
       </SidebarFooter>
 
-      {/* Rail for resize/toggle on edge */}
-      <SidebarRail />
+      {/* Rail for resize/toggle on edge - Nordic minimalism: subtle, functional */}
+      <SidebarRail className="sticky top-0 z-50 transition-all duration-200 hover:bg-sidebar-accent/10" />
     </Sidebar>
   );
 }
@@ -114,27 +122,30 @@ function SearchSection({
 
   return (
     <SidebarContent className="h-min">
-      <SidebarGroup className="py-0">
-        <SidebarGroupContent className="p-2 border-b border-border">
+      <SidebarGroup className="py-0 mb-6">
+        <SidebarGroupContent className="px-6 py-3">
           {isCollapsed ? (
             // Show only search icon button when collapsed
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Search">
-                  <Search className="w-4 h-4" />
-                  <span>Search</span>
+                <SidebarMenuButton
+                  tooltip="Search"
+                  className="h-9 w-9 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5"
+                >
+                  <Search className="w-[18px] h-[18px] opacity-50" />
+                  <span className="sr-only">Search</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           ) : (
-            // Show full search input when expanded
+            // Show full search input when expanded - Nordic minimalist style
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 w-[16px] h-[16px]" />
               <SidebarInput
-                placeholder="Search..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-background border-border"
+                className="h-9 pl-9 pr-3 bg-transparent border-none rounded-lg text-sm font-light placeholder:text-muted-foreground/40 focus-visible:bg-sidebar-accent/5 focus-visible:ring-0 focus-visible:ring-offset-0 transition-all duration-200"
               />
             </div>
           )}

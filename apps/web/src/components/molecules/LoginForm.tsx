@@ -63,28 +63,28 @@ const LoginForm = () => {
 
   const isLoading = signinMutation.isPending;
 
-  // Error styling for inputs
+  // Error styling for inputs - Nordic minimalism: subtle error indication
   const inputErrorClass = hasError
-    ? "border-destructive focus:ring-destructive"
-    : "border-primary";
+    ? "border-destructive/40 focus-visible:border-destructive/60"
+    : "border-border/30 focus-visible:border-primary/40";
 
   return (
-    <Card className="w-full max-w-md border-0 shadow-lg bg-card">
-      <CardHeader className="space-y-3 pb-6">
-        <CardTitle className="text-3xl font-light tracking-tight text-card-foreground">
+    <Card className="w-full max-w-md border-none shadow-none bg-card/50 backdrop-blur-sm">
+      <CardHeader className="space-y-4 pb-8">
+        <CardTitle className="text-3xl font-light tracking-wide text-foreground">
           Welcome back
         </CardTitle>
-        <CardDescription className="text-base leading-relaxed text-muted-foreground">
-          Enter your credentials to access your account
+        <CardDescription className="text-sm font-light leading-relaxed text-muted-foreground/60 tracking-wide">
+          Enter your credentials to continue
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className={`text-sm font-normal ${hasError ? "text-destructive" : "text-muted-foreground"}`}
+              className={`text-xs font-light tracking-wide uppercase ${hasError ? "text-destructive/70" : "text-muted-foreground/60"}`}
             >
               Email
             </Label>
@@ -95,7 +95,7 @@ const LoginForm = () => {
               placeholder="name@example.com"
               defaultValue="user1@example.com"
               onFocus={handleInputFocus}
-              className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
+              className={`h-11 rounded-lg text-sm font-light bg-background/50 transition-all duration-200 ${inputErrorClass}`}
               required
               disabled={isLoading}
               aria-invalid={hasError}
@@ -106,12 +106,12 @@ const LoginForm = () => {
             <div className="flex items-center justify-between">
               <Label
                 htmlFor="password"
-                className={`text-sm font-normal ${hasError ? "text-destructive" : "text-muted-foreground"}`}
+                className={`text-xs font-light tracking-wide uppercase ${hasError ? "text-destructive/70" : "text-muted-foreground/60"}`}
               >
                 Password
               </Label>
-              <Link to="/forgot-password" className="text-sm text-accent hover:underline">
-                Forgot password?
+              <Link to="/forgot-password" className="text-xs font-light text-accent/70 hover:text-accent transition-colors tracking-wide">
+                Forgot?
               </Link>
             </div>
             <Input
@@ -120,7 +120,7 @@ const LoginForm = () => {
               type="password"
               defaultValue="password123"
               onFocus={handleInputFocus}
-              className={`h-11 border rounded-sm text-foreground bg-input transition-colors ${inputErrorClass}`}
+              className={`h-11 rounded-lg text-sm font-light bg-background/50 transition-all duration-200 ${inputErrorClass}`}
               required
               disabled={isLoading}
               aria-invalid={hasError}
@@ -129,13 +129,13 @@ const LoginForm = () => {
 
           <Button
             type="submit"
-            className="w-full h-11 text-base font-normal mt-6 bg-accent text-accent-foreground hover:bg-accent/90 rounded-sm disabled:opacity-70"
+            className="w-full h-11 text-sm font-light tracking-wide mt-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg disabled:opacity-40 transition-all duration-200 shadow-none"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin opacity-60" />
+                Signing in
               </>
             ) : (
               "Sign in"
@@ -144,10 +144,10 @@ const LoginForm = () => {
         </form>
       </CardContent>
 
-      <CardFooter className="flex justify-center pt-2">
-        <p className="text-sm text-muted-foreground">
+      <CardFooter className="flex justify-center pt-6">
+        <p className="text-xs font-light text-muted-foreground/60 tracking-wide">
           {"Don't have an account? "}
-          <Link to="/register" className="font-medium text-accent hover:underline">
+          <Link to="/register" className="text-accent/80 hover:text-accent transition-colors">
             Sign up
           </Link>
         </p>

@@ -25,20 +25,26 @@ export const SidebarConversations = ({ items, loading }: SidebarGroupMessagesPro
   );
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Groups</SidebarGroupLabel>
-      <div className="flex gap-1">
+    <SidebarGroup className="mb-8">
+      <div className="flex items-center justify-between px-3 mb-3">
+        <SidebarGroupLabel className="text-[11px] uppercase tracking-widest font-light text-muted-foreground/60 flex-1">
+          Groups
+        </SidebarGroupLabel>
         <CreateNewConversationDialog
           openCreateConversation={openCreateConversation}
           setOpenCreateConversation={setOpenCreateConversation}
         >
-          <SidebarGroupAction onClick={() => setOpenCreateConversation(true)}>
-            <Plus /> <span className="sr-only">Add Conversation</span>
+          <SidebarGroupAction
+            onClick={() => setOpenCreateConversation(true)}
+            className="h-5 w-5 rounded-md hover:bg-sidebar-accent/5 transition-all duration-200 opacity-60 hover:opacity-100"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span className="sr-only">Add Conversation</span>
           </SidebarGroupAction>
         </CreateNewConversationDialog>
       </div>
 
-      <SidebarMenu>
+      <SidebarMenu className="gap-0.5">
         {loading ? (
           <ConversationsSkeleton />
         ) : (

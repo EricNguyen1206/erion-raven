@@ -1,5 +1,4 @@
 import { ConversationDto } from '@notify/types';
-import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Link } from 'react-router-dom';
 import { SidebarMenuItem } from '../ui/sidebar';
@@ -13,15 +12,18 @@ type DirectMessageCardProps = {
 const DirectMessageCard = ({ convo, isActive }: DirectMessageCardProps) => {
   const displayName = convo.name.split('@')[0];
   return (
-    <SidebarMenuItem className={cn(isActive && 'bg-primary/10')}>
+    <SidebarMenuItem>
       <Link
         to={`/messages/${convo.id}`}
-        className="flex items-center cursor-pointer transition-colors rounded-md p-2 mb-1"
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5",
+          isActive && "bg-sidebar-accent/10 hover:bg-sidebar-accent/10"
+        )}
       >
-        <div className="relative mr-3">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={convo.avatar} />
-            <AvatarFallback color="#8B5CF6">
+        <div className="relative">
+          <Avatar className="w-7 h-7 rounded-lg transition-all duration-200">
+            <AvatarImage src={convo.avatar} className="object-cover" />
+            <AvatarFallback className="rounded-lg bg-sidebar-accent/20 text-sidebar-foreground/60 text-xs font-light">
               {convo.name
                 .split(' ')
                 .map((n: string) => n[0])
@@ -31,9 +33,7 @@ const DirectMessageCard = ({ convo, isActive }: DirectMessageCardProps) => {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <h4 className="font-medium text-foreground text-sm truncate">{displayName}</h4>
-          </div>
+          <h4 className="font-light text-sidebar-foreground text-sm truncate">{displayName}</h4>
         </div>
       </Link>
     </SidebarMenuItem>
