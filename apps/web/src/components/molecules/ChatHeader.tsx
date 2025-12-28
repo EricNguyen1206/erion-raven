@@ -114,7 +114,7 @@ export default function ChatHeader(chat: ChatHeaderProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between px-8 py-5 bg-background border-b border-border/30">
+      <div className="absolute top-0 w-full h-[64px] z-50 shrink-0 flex items-center justify-between mt-0 px-4 py-2 bg-background border-b border-border/30">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-auto p-0 hover:bg-transparent focus:bg-transparent">

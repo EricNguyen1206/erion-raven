@@ -36,33 +36,31 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="raven-theme">
-        <div className="flex flex-col h-screen font-sans antialiased">
-          <ToastContainer position="bottom-left" theme="colored" />
-          <main className="flex-1 overflow-y-auto">
-            <Routes>
-              {/* Public routes (guest only) */}
-              <Route element={<GuestGuard />}>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-              </Route>
+        <ToastContainer position="bottom-left" theme="colored" />
+        <main className="relative !w-screen !h-screen !min-h-screen !max-h-screen overflow-hidden flex flex-col font-sans antialiased">
+          <Routes>
+            {/* Public routes (guest only) */}
+            <Route element={<GuestGuard />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
 
-              {/* Protected routes (auth required) */}
-              <Route element={<AuthGuard />}>
-                <Route element={<MessagesWebSocketProvider />}>
-                  <Route element={<MessagesLayout />}>
-                    <Route path="/messages" element={<MessagesPage />} />
-                    <Route path="/messages/:id" element={<ConversationPage />} />
-                    <Route path="/contacts" element={<ContactsPage />} />
-                  </Route>
+            {/* Protected routes (auth required) */}
+            <Route element={<AuthGuard />}>
+              <Route element={<MessagesWebSocketProvider />}>
+                <Route element={<MessagesLayout />}>
+                  <Route path="/messages" element={<MessagesPage />} />
+                  <Route path="/messages/:id" element={<ConversationPage />} />
+                  <Route path="/contacts" element={<ContactsPage />} />
                 </Route>
               </Route>
+            </Route>
 
-              {/* Redirects */}
-              <Route path="/" element={<Navigate to="/messages" replace />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
-        </div>
+            {/* Redirects */}
+            <Route path="/" element={<Navigate to="/messages" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </main>
       </ThemeProvider>
     </QueryClientProvider>
   )

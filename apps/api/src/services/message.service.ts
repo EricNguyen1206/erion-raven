@@ -93,7 +93,6 @@ export class MessageService {
 
   private async createMessagePrivate(data: {
     senderId: string;
-    receiverId?: string;
     conversationId?: string;
     text?: string;
     url?: string;
@@ -197,9 +196,9 @@ export class MessageService {
     }
   ): Promise<MessageDto> {
     try {
-      // Validate that exactly one of receiverId or conversationId is set
-      if ((!data.receiverId && !data.conversationId) || (data.receiverId && data.conversationId)) {
-        throw new Error("Exactly one of receiverId or conversationId must be set");
+      // Validate that conversationId is provided (receiverId is deprecated/not used in Message model)
+      if (!data.conversationId) {
+        throw new Error("conversationId must be set");
       }
 
       // Validate that at least one content field is provided
@@ -209,7 +208,6 @@ export class MessageService {
 
       const messageData: {
         senderId: string;
-        receiverId?: string;
         conversationId?: string;
         text?: string;
         url?: string;
@@ -218,9 +216,6 @@ export class MessageService {
         senderId,
       };
 
-      if (data.receiverId !== undefined) {
-        messageData.receiverId = data.receiverId;
-      }
       if (data.conversationId !== undefined) {
         messageData.conversationId = data.conversationId;
       }
@@ -240,7 +235,6 @@ export class MessageService {
         messageId: messageResponse.id,
         senderId,
         conversationId: data.conversationId,
-        receiverId: data.receiverId,
       });
 
       return messageResponse;

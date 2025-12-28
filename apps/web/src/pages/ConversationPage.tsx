@@ -9,7 +9,6 @@ import { ConnectionState } from "@/store/useSocketStore";
 const ConversationPage = () => {
   const {
     sessionUser,
-    conversationId,
     currentConversation,
     conversationData,
     memberCount,
@@ -23,9 +22,9 @@ const ConversationPage = () => {
   } = useChatPage();
 
   return (
-    <div className="w-full h-full flex flex-col bg-background">
+    <div className="w-full h-full relative flex flex-col bg-background">
       <ChatHeader
-        id={String(conversationId)}
+        id={String(currentConversation?.id)}
         name={String(currentConversation?.name)}
         isGroup={currentConversation?.type === "group"}
         avatar={currentConversation?.avatar ?? ""}
@@ -35,7 +34,7 @@ const ConversationPage = () => {
         {...(sessionUser?.id !== undefined && { currentUserId: sessionUser.id })}
       />
 
-      {/* Connection status indicator - Nordic minimalism: subtle and calm */}
+      {/* Connection status indicator - Nordic minimalism: subtle and calm
       {connectionState === ConnectionState.CONNECTING && (
         <div className="px-8 py-3 bg-accent/5 border-b border-accent/10">
           <div className="flex items-center gap-3">
@@ -52,13 +51,14 @@ const ConversationPage = () => {
             <span className="text-xs font-light text-destructive/80 tracking-wide">Connection issue</span>
           </div>
         </div>
-      )}
+      )} */}
 
-      <ScrollArea ref={containerRef} className="flex-1 px-8 py-6">
+      {/* <ScrollArea ref={containerRef} className="flex-1 px-8 py-6"> */}
+      <ScrollArea ref={containerRef} className="h-[calc(100% - 160px)] min-h-[calc(100%-160px)] max-h-[calc(100%-160px)] mt-0 flex-1 px-4">
         {chatsLoading ? (
           <MessagesSkeleton isGroup={true} />
         ) : (
-          <div className="space-y-1 max-w-4xl mx-auto">
+          <div className="flex flex-col w-full">
             {sessionUser?.id &&
               chats.map((message) => (
                 <MessageBubble key={message.id} content={message.text ?? ""} variant={message.senderId === sessionUser.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />
