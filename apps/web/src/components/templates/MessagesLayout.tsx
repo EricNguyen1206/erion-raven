@@ -29,7 +29,7 @@ export default function MessagesLayout() {
     <ScreenProvider>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="">
+        <SidebarInset>
           <header className="shrink-0 h-8 flex items-center gap-2 border-b border-border/30">
             <div className="h-full flex items-center gap-2 px-4">
               <SidebarTrigger className="-ml-1" />
@@ -54,7 +54,7 @@ export default function MessagesLayout() {
               </Breadcrumb>
             </div>
           </header>
-          <div className="flex-1 flex bg-background">
+          <div className="flex-1 flex min-h-0 overflow-hidden bg-background">
             <Outlet />
           </div>
         </SidebarInset>

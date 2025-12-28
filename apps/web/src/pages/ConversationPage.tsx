@@ -22,7 +22,7 @@ const ConversationPage = () => {
   } = useChatPage();
 
   return (
-    <div className="w-full h-full relative flex flex-col bg-background">
+    <div className="w-full flex-1 min-h-0 relative flex flex-col overflow-hidden bg-background">
       <ChatHeader
         id={String(currentConversation?.id)}
         name={String(currentConversation?.name)}
@@ -53,8 +53,8 @@ const ConversationPage = () => {
         </div>
       )} */}
 
-      {/* <ScrollArea ref={containerRef} className="flex-1 px-8 py-6"> */}
-      <ScrollArea ref={containerRef} className="h-[calc(100% - 160px)] min-h-[calc(100%-160px)] max-h-[calc(100%-160px)] mt-0 flex-1 px-4">
+      {/* ScrollArea with top padding to offset the fixed header (64px) */}
+      <ScrollArea ref={containerRef} className="flex-1 min-h-0 pt-16 px-4">
         {chatsLoading ? (
           <MessagesSkeleton isGroup={true} />
         ) : (
