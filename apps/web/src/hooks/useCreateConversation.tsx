@@ -3,8 +3,8 @@ import { toast } from 'react-toastify';
 
 import { useCreateConversationMutation } from '@/services/api/conversations';
 import { useCurrentUserQuery } from '@/services/api/users';
-import { CreateConversationRequest, ConversationDto, ConversationType } from '@notify/types';
-import type { UserDto } from '@notify/types';
+import { CreateConversationRequest, ConversationDto, ConversationType } from '@raven/types';
+import type { UserDto } from '@raven/types';
 import { useConversationStore } from '@/store/useConversationStore';
 
 interface UseCreateConversationOptions {
@@ -97,17 +97,9 @@ export const useCreateConversation = (options: UseCreateConversationOptions = {}
       if (data.selectedUsers.length > 4) {
         return 'Cannot select more than 4 users for a conversation';
       }
-    } else if (data.type === 'direct') {
+    } else     if (data.type === 'direct') {
       if (data.selectedUsers.length !== 1) {
         return 'Please select exactly 1 user for direct message';
-      }
-    }
-
-    // Ensure current user is included for group conversations
-    if (data.type === 'group' && user) {
-      const currentUserIncluded = data.selectedUsers.some((u) => String(u.id) === user.id);
-      if (!currentUserIncluded) {
-        return 'You must include yourself when creating a conversation';
       }
     }
 
@@ -131,15 +123,10 @@ export const useCreateConversation = (options: UseCreateConversationOptions = {}
     try {
       // Prepare API request body
       const selectedUserIds = dataToSubmit.selectedUsers.map((u) => String(u.id!));
-      const userIds =
-        dataToSubmit.type === 'direct'
-          ? [...selectedUserIds, user!.id] // Add current user for direct messages
-          : selectedUserIds; // Group conversations already include current user
-
       const requestBody: CreateConversationRequest = {
         ...(dataToSubmit.name.trim() && { name: dataToSubmit.name.trim() }), // Backend will auto-generate name for direct messages
         type: dataToSubmit.type as ConversationType,
-        userIds: [...new Set(userIds)], // Remove duplicates
+        userIds: [...new Set(selectedUserIds)], // Remove duplicates
       };
 
       const response = await postConversationMutation.mutateAsync(requestBody);
@@ -171,6 +158,7 @@ export const useCreateConversation = (options: UseCreateConversationOptions = {}
     // State
     formData,
     loading,
+    user,
 
     // Actions
     createConversation,

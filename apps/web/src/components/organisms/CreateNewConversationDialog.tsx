@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserSearchInput } from '@/components/molecules/UserSearchInput';
 import { useCreateConversation } from '@/hooks/useCreateConversation';
-import type { UserDto } from '@notify/types';
 
 interface CreateNewConversationDialogProps {
   openCreateConversation: boolean;
@@ -25,7 +24,7 @@ interface CreateNewConversationDialogProps {
 const CreateNewConversationDialog = (props: CreateNewConversationDialogProps) => {
   const { openCreateConversation, setOpenCreateConversation, children } = props;
 
-  const { formData, loading, createConversation, updateFormData, updateSelectedUsers, resetForm } =
+  const { formData, loading, user, createConversation, updateFormData, updateSelectedUsers, resetForm } =
     useCreateConversation({
       defaultType: 'group',
       onSuccess: () => {
@@ -80,6 +79,7 @@ const CreateNewConversationDialog = (props: CreateNewConversationDialogProps) =>
               maxUsers={4}
               minUsers={2}
               disabled={loading}
+              currentUserId={user?.id}
             />
           </div>
 

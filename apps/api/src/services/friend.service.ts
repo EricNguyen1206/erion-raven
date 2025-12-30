@@ -1,7 +1,7 @@
 import { FriendRequest, FriendRequestStatus } from "@/models/FriendRequest";
 import { Friends } from "@/models/Friends";
 import { User, IUser } from "@/models/User";
-import { FriendDto, FriendRequestDto, FriendRequestsResponse } from "@notify/types";
+import { FriendDto, FriendRequestDto, FriendRequestsResponse } from "@raven/types";
 import { logger } from "@/utils/logger";
 
 export class FriendService {

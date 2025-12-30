@@ -22,7 +22,7 @@ import { Label } from "../ui/label";
 // API
 import { useCurrentUserQuery, useUpdateProfileMutation } from "@/services/api/users";
 import { useQueryClient } from "@tanstack/react-query";
-import { UpdateProfileDto } from '@notify/validators';
+import { UpdateProfileDto } from '@raven/validators';
 
 type ParentComponentProps = {
   children: React.ReactNode;

@@ -5,7 +5,7 @@ import {
   CreateConversationRequestDto,
   UpdateConversationRequestDto,
   ConversationMembershipRequest,
-} from '@notify/validators';
+} from '@raven/validators';
 
 const router = Router();
 const conversationController = new ConversationController();

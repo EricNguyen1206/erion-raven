@@ -1,5 +1,5 @@
 {
-  "name": "@notify/validators",
+  "name": "@raven/validators",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "class-validator": "^0.14.0",
-    "@notify/types": "workspace:*"
+    "@raven/types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.3.2",

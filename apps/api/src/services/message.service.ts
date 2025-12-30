@@ -1,6 +1,6 @@
 import { Message } from "@/models/Message";
 import { IUser } from "@/models/User";
-import { MessageDto } from "@notify/types";
+import { MessageDto } from "@raven/types";
 import { logger } from "@/utils/logger";
 
 export class MessageService {

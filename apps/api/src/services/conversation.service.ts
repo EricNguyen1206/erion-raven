@@ -2,9 +2,9 @@ import { Conversation, IConversation } from "@/models/Conversation";
 import { User, IUser } from "@/models/User";
 import { Participant } from "@/models/Participant";
 import { UserService } from "@/services/user.service";
-import { ConversationDto, ConversationType } from "@notify/types";
+import { ConversationDto, ConversationType } from "@raven/types";
 import { logger } from "@/utils/logger";
-import { UpdateConversationRequestDto } from "@notify/validators";
+import { UpdateConversationRequestDto } from "@raven/validators";
 
 export class ConversationService {
   private userService: UserService;

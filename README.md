@@ -207,8 +207,8 @@ redis-server
 pnpm dev
 
 # Or run separately
-pnpm --filter @erion-raven/api dev
-pnpm --filter @erion-raven/web dev
+pnpm --filter @raven/api dev
+pnpm --filter @raven/web dev
 ```
 
 6. **Access the application**
@@ -270,13 +270,13 @@ pnpm install
 
 # Development
 pnpm dev                    # Run all apps in dev mode
-pnpm --filter @erion-raven/api dev    # Backend only
-pnpm --filter @erion-raven/web dev    # Frontend only
+pnpm --filter @raven/api dev    # Backend only
+pnpm --filter @raven/web dev    # Frontend only
 
 # Build
 pnpm build                  # Build all apps
-pnpm --filter @erion-raven/api build  # Backend only
-pnpm --filter @erion-raven/web build  # Frontend only
+pnpm --filter @raven/api build  # Backend only
+pnpm --filter @raven/web build  # Frontend only
 
 # Testing
 pnpm test                   # Run all tests
@@ -292,7 +292,7 @@ pnpm format                # Format code with Prettier
 pnpm type-check            # Check TypeScript types
 
 # Database
-pnpm --filter @erion-raven/api db:seed    # Seed database
+pnpm --filter @raven/api db:seed    # Seed database
 ```
 
 ### Using Makefile
@@ -341,8 +341,8 @@ See the [Deployment Guide](_docs/DEPLOYMENT.md) for detailed instructions.
 **Backend (Render.com):**
 1. Connect GitHub repository
 2. Set root directory to `apps/api`
-3. Set build command: `cd ../.. && pnpm install && pnpm --filter @erion-raven/api build`
-4. Set start command: `cd ../.. && pnpm --filter @erion-raven/api start`
+3. Set build command: `cd ../.. && pnpm install && pnpm --filter @raven/api build`
+4. Set start command: `cd ../.. && pnpm --filter @raven/api start`
 5. Add environment variables
 
 **Frontend (Vercel):**

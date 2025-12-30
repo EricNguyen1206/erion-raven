@@ -1,5 +1,5 @@
 {
-  "name": "@notify/api",
+  "name": "@raven/api",
   "version": "1.0.0",
   "description": "Notify Chat Service Backend - Express + TypeScript + Mongoose",
   "main": "dist/index.js",
@@ -25,9 +25,9 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
-    "@notify/shared": "workspace:*",
-    "@notify/types": "workspace:*",
-    "@notify/validators": "workspace:*",
+    "@raven/shared": "workspace:*",
+    "@raven/types": "workspace:*",
+    "@raven/validators": "workspace:*",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
@@ -54,10 +54,10 @@
     "@": "dist"
   },
   "devDependencies": {
-    "@notify/eslint": "workspace:*",
-    "@notify/jest": "workspace:*",
-    "@notify/prettier": "workspace:*",
-    "@notify/tsconfig": "workspace:*",
+    "@raven/eslint": "workspace:*",
+    "@raven/jest": "workspace:*",
+    "@raven/prettier": "workspace:*",
+    "@raven/tsconfig": "workspace:*",
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.10",

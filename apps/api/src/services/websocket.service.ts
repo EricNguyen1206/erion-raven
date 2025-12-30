@@ -10,7 +10,7 @@ import {
   createMessageDto,
   createUserJoinedPayload,
   createUserLeftPayload,
-} from '@notify/types';
+} from '@raven/types';
 import { logger } from '@/utils/logger';
 
 /**

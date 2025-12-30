@@ -1,4 +1,4 @@
-import { ConversationDto, ConversationType } from "@notify/types";
+import { ConversationDto, ConversationType } from "@raven/types";
 
 export const ApplicationFileType: string[] = [
   "docx",

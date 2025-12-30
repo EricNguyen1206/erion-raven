@@ -1,2 +1,2 @@
-module.exports = require('@notify/prettier');
+module.exports = require('@raven/prettier');
 

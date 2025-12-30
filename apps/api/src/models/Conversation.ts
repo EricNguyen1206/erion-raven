@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { ConversationType } from "@notify/types";
+import { ConversationType } from "@raven/types";
 
 export interface IConversation extends Document {
   _id: mongoose.Types.ObjectId;

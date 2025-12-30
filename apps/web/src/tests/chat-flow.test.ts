@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useChatStore } from '../store/useChatStore';
-import { MessageDto } from '@notify/types';
+import { MessageDto } from '@raven/types';
 
 describe('Chat Flow Frontend', () => {
   beforeEach(() => {

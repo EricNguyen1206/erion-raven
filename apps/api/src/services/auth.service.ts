@@ -4,8 +4,8 @@ import crypto from "crypto";
 import { User, IUser } from "@/models/User";
 import { Session } from "@/models/Session";
 import { config } from "@/config/config";
-import { SignupRequestDto, SigninRequestDto } from "@notify/validators";
-import { UserDto } from "@notify/types";
+import { SignupRequestDto, SigninRequestDto } from "@raven/validators";
+import { UserDto } from "@raven/types";
 import { logger } from "@/utils/logger";
 
 export class AuthService {

@@ -4,7 +4,7 @@ import ChannelsSkeleton from './ChannelsSkeleton';
 import CreateNewDirectMessageDialog from '../organisms/CreateNewDirectMessageDialog';
 import { useState } from 'react';
 import DirectMessageCard from '../atoms/DirectMessageCard';
-import { ConversationDto } from '@notify/types';
+import { ConversationDto } from '@raven/types';
 import { ConversationState, useConversationStore } from '@/store/useConversationStore';
 
 type SidebarDirectMessagesProps = {

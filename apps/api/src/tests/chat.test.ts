@@ -2,7 +2,7 @@ import { WebSocketService } from '../services/websocket.service';
 import { RedisService } from '../services/redis.service';
 import { MessageService } from '../services/message.service';
 import { ConversationService } from '../services/conversation.service';
-import { SocketEvent, ConversationType } from '@notify/types';
+import { SocketEvent, ConversationType } from '@raven/types';
 import { Socket } from 'socket.io';
 
 // Mock dependencies

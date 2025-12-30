@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { FriendController } from '@/controllers/friend.controller';
 import { validateDto } from '@/middleware/validation.middleware';
-import { SendFriendRequestApiRequestDto } from '@notify/validators';
+import { SendFriendRequestApiRequestDto } from '@raven/validators';
 
 const router = Router();
 const friendController = new FriendController();

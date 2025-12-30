@@ -1,38 +1,16 @@
 'use client';
 
 import { House } from 'lucide-react';
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 import { ThemeToggle } from "../atoms/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { useSignoutMutation } from "@/services/api/auth";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface MainHeaderClientProps {
   user: any;
 }
 
 const MainHeaderClient = ({ user }: MainHeaderClientProps) => {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
-  const signoutMutation = useSignoutMutation({
-    onSuccess: () => {
-      // Clear all query cache, especially user data
-      queryClient.clear();
-      toast.success("Sign out successfully");
-      navigate("/login", { replace: true });
-    },
-    onError: () => {
-      toast.error("An error occurred during sign out");
-    },
-  });
-
-  const handleSignOut = () => {
-    signoutMutation.mutate();
-  };
-
   return (
     <div className="flex justify-between items-center py-2 px-4">
       <Link to="/">

@@ -207,10 +207,10 @@ This starts:
 **Run individually:**
 ```bash
 # Backend only
-pnpm --filter @erion-raven/api dev
+pnpm --filter @raven/api dev
 
 # Frontend only
-pnpm --filter @erion-raven/web dev
+pnpm --filter @raven/web dev
 ```
 
 ### Making Changes
@@ -332,7 +332,7 @@ This creates:
 pnpm lint
 
 # Lint specific package
-pnpm --filter @erion-raven/api lint
+pnpm --filter @raven/api lint
 
 # Auto-fix issues
 pnpm lint:fix
@@ -375,7 +375,7 @@ Create `.vscode/launch.json`:
       "request": "launch",
       "name": "Debug Backend",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@erion-raven/api", "dev"],
+      "runtimeArgs": ["--filter", "@raven/api", "dev"],
       "skipFiles": ["<node_internals>/**"],
       "console": "integratedTerminal"
     }
@@ -481,14 +481,14 @@ pnpm install
 
 **Error:**
 ```
-Cannot find module '@notify/types'
+Cannot find module '@raven/types'
 ```
 
 **Solution:**
 ```bash
 # Build shared packages first
-pnpm --filter @notify/types build
-pnpm --filter @notify/validators build
+pnpm --filter @raven/types build
+pnpm --filter @raven/validators build
 
 # Or build all
 pnpm build

@@ -8,7 +8,7 @@ import {
   ApiErrorResponse,
   ApiMessageResponse,
   ApiResponse,
-} from '@notify/types';
+} from '@raven/types';
 import { useMutation, UseMutationOptions } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 

@@ -1,4 +1,4 @@
-import { ConversationDto } from '@notify/types';
+import { ConversationDto } from '@raven/types';
 import { Hash } from 'lucide-react';
 import { SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import { Link } from 'react-router-dom';

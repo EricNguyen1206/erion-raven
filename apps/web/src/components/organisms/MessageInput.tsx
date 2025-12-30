@@ -1,19 +1,15 @@
 import { Paperclip, Send, Smile } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { Button } from "../ui/button";
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
-  onStartTyping?: () => void;
-  onStopTyping?: () => void;
   isConnected?: boolean;
   disabled?: boolean;
 }
 
 export default function MessageInput({
   onSendMessage,
-  onStartTyping,
-  onStopTyping,
   isConnected = true,
   disabled = false,
 }: MessageInputProps) {
@@ -43,8 +39,8 @@ export default function MessageInput({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newMessage = e.target.value;
+  const handleInputChange = (_e: React.ChangeEvent<HTMLInputElement>) => {
+    // const newMessage = e.target.value;
 
     // // Handle typing indicators
     // if (newMessage.length > 0 && !hasTyped && onStartTyping) {

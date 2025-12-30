@@ -8,16 +8,16 @@ importers:
 
   .:
     devDependencies:
-      '@notify/eslint':
+      '@raven/eslint':
         specifier: workspace:*
         version: link:packages/config/eslint
-      '@notify/jest':
+      '@raven/jest':
         specifier: workspace:*
         version: link:packages/config/jest
-      '@notify/prettier':
+      '@raven/prettier':
         specifier: workspace:*
         version: link:packages/config/prettier
-      '@notify/tsconfig':
+      '@raven/tsconfig':
         specifier: workspace:*
         version: link:packages/config/tsconfig
       turbo:
@@ -29,13 +29,13 @@ importers:
 
   apps/api:
     dependencies:
-      '@notify/shared':
+      '@raven/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@notify/types':
+      '@raven/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@notify/validators':
+      '@raven/validators':
         specifier: workspace:*
         version: link:../../packages/validators
       bcryptjs:
@@ -102,16 +102,16 @@ importers:
         specifier: ^5.0.0
         version: 5.0.1(express@4.21.2)
     devDependencies:
-      '@notify/eslint':
+      '@raven/eslint':
         specifier: workspace:*
         version: link:../../packages/config/eslint
-      '@notify/jest':
+      '@raven/jest':
         specifier: workspace:*
         version: link:../../packages/config/jest
-      '@notify/prettier':
+      '@raven/prettier':
         specifier: workspace:*
         version: link:../../packages/config/prettier
-      '@notify/tsconfig':
+      '@raven/tsconfig':
         specifier: workspace:*
         version: link:../../packages/config/tsconfig
       '@types/bcryptjs':
@@ -159,15 +159,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@notify/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@notify/types':
-        specifier: workspace:*
-        version: link:../../packages/types
-      '@notify/validators':
-        specifier: workspace:*
-        version: link:../../packages/validators
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@19.2.2)(@types/react@19.2.2)(react-dom@19.2.0)(react@19.2.0)
@@ -216,6 +207,15 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@19.2.2)(@types/react@19.2.2)(react-dom@19.2.0)(react@19.2.0)
+      '@raven/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@raven/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@raven/validators':
+        specifier: workspace:*
+        version: link:../../packages/validators
       '@supabase/supabase-js':
         specifier: ^2.87.1
         version: 2.87.1
@@ -262,13 +262,13 @@ importers:
         specifier: ^5.0.7
         version: 5.0.8(@types/react@19.2.2)(react@19.2.0)
     devDependencies:
-      '@notify/eslint':
+      '@raven/eslint':
         specifier: workspace:*
         version: link:../../packages/config/eslint
-      '@notify/prettier':
+      '@raven/prettier':
         specifier: workspace:*
         version: link:../../packages/config/prettier
-      '@notify/tsconfig':
+      '@raven/tsconfig':
         specifier: workspace:*
         version: link:../../packages/config/tsconfig
       '@tailwindcss/postcss':
@@ -394,7 +394,7 @@ importers:
 
   packages/shared:
     dependencies:
-      '@notify/types':
+      '@raven/types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -410,7 +410,7 @@ importers:
 
   packages/validators:
     dependencies:
-      '@notify/types':
+      '@raven/types':
         specifier: workspace:*
         version: link:../types
       class-validator:

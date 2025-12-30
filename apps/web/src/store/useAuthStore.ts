@@ -10,7 +10,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { authService } from "@/services/authService";
 import { toast } from "react-toastify";
-import { UserDto } from "@notify/types";
+import { UserDto } from "@raven/types";
 
 export interface AuthState {
   // User data only - no tokens in frontend

@@ -1,5 +1,5 @@
 {
-  "name": "@notify/shared",
+  "name": "@raven/shared",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,7 +9,7 @@
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
-    "@notify/types": "workspace:*"
+    "@raven/types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.3.2"

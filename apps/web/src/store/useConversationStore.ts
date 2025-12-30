@@ -1,4 +1,4 @@
-import { ConversationDto } from '@notify/types';
+import { ConversationDto } from '@raven/types';
 import { create } from 'zustand';
 
 // stores/conversationStore.ts

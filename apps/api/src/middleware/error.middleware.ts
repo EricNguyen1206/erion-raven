@@ -9,7 +9,7 @@ import {
   RateLimitError,
   InternalServerError,
   isOperationalError,
-} from "@notify/shared";
+} from "@raven/shared";
 
 export const errorHandler = (error: Error, req: Request, res: Response, _next: NextFunction): void => {
   logger.error("Error occurred:", {

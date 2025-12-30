@@ -15,7 +15,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { UserSearchInput } from '@/components/molecules/UserSearchInput';
 import { useCreateConversation } from '@/hooks/useCreateConversation';
-import type { UserDto } from '@notify/types';
+import type { UserDto } from '@raven/types';
 import { useConversationStore } from '@/store/useConversationStore';
 import { useFriendsQuery, useSendFriendRequestMutation } from '@/services/api/friends';
 

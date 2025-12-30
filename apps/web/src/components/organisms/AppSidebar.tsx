@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Home, Users, Search } from "lucide-react";
+import { Home, Users } from "lucide-react";
 import { useSidebarActions } from "@/hooks/useSidebarActions";
 import { SidebarConversations } from "../molecules/SidebarConversations";
 import SidebarDirectMessages from "../molecules/SidebarDirectMessages";
@@ -12,19 +12,15 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarInput,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  useSidebar,
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
   // Use centralized business logic from actions
   const {
-    searchQuery,
-    setSearchQuery,
     filteredConversations,
     filteredDirectMessages,
     isConversationsLoading,
@@ -64,8 +60,8 @@ export function AppSidebar() {
                   className="h-9 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 data-[active=true]:bg-sidebar-accent/10"
                 >
                   <Link to="/" className="flex items-center gap-3">
-                    <Home className="w-[18px] h-[18px] opacity-60" />
-                    <span className="text-sm font-light">Home</span>
+                    <Home className="w-[18px] h-[18px] font-light text-sidebar-foreground" />
+                    <span className="font-light text-sidebar-foreground text-sm">Home</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -76,8 +72,8 @@ export function AppSidebar() {
                   className="h-9 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 data-[active=true]:bg-sidebar-accent/10"
                 >
                   <Link to="/contacts" className="flex items-center gap-3">
-                    <Users className="w-[18px] h-[18px] opacity-60" />
-                    <span className="text-sm font-light">Contacts</span>
+                    <Users className="w-[18px] h-[18px] font-light text-sidebar-foreground" />
+                    <span className="font-light text-sidebar-foreground text-sm">Contacts</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -106,52 +102,6 @@ export function AppSidebar() {
       {/* Rail for resize/toggle on edge - Nordic minimalism: subtle, functional */}
       <SidebarRail className="sticky top-0 z-50 transition-all duration-200 hover:bg-sidebar-accent/10" />
     </Sidebar>
-  );
-}
-
-// Separate component to access useSidebar context
-function SearchSection({
-  searchQuery,
-  setSearchQuery,
-}: {
-  searchQuery: string;
-  setSearchQuery: (value: string) => void;
-}) {
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
-
-  return (
-    <SidebarContent className="h-min">
-      <SidebarGroup className="py-0 mb-6">
-        <SidebarGroupContent className="px-6 py-3">
-          {isCollapsed ? (
-            // Show only search icon button when collapsed
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip="Search"
-                  className="h-9 w-9 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5"
-                >
-                  <Search className="w-[18px] h-[18px] opacity-50" />
-                  <span className="sr-only">Search</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          ) : (
-            // Show full search input when expanded - Nordic minimalist style
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 w-[16px] h-[16px]" />
-              <SidebarInput
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 pl-9 pr-3 bg-transparent border-none rounded-lg text-sm font-light placeholder:text-muted-foreground/40 focus-visible:bg-sidebar-accent/5 focus-visible:ring-0 focus-visible:ring-offset-0 transition-all duration-200"
-              />
-            </div>
-          )}
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </SidebarContent>
   );
 }
 

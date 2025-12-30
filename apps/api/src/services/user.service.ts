@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { User, IUser } from "@/models/User";
-import { UpdateProfileDto } from "@notify/validators";
-import { UserDto } from "@notify/types";
+import { UpdateProfileDto } from "@raven/validators";
+import { UserDto } from "@raven/types";
 import { logger } from "@/utils/logger";
 
 export class UserService {

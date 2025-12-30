@@ -1,11 +1,10 @@
-import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { User } from "../models/User";
 import { Friends } from "../models/Friends";
 import { Conversation } from "../models/Conversation";
 import { Participant } from "../models/Participant";
 import { Message } from "../models/Message";
-import { ConversationType } from "@notify/types";
+import { ConversationType } from "@raven/types";
 import { initializeDatabase, closeDatabase } from "../config/database";
 import { logger } from "../utils/logger";
 
@@ -46,25 +45,25 @@ async function seed() {
     logger.info("Creating friend connections...");
     for (let i = 1; i < users.length; i++) {
       await Friends.create({
-        userId: users[0]._id,
-        friendId: users[i]._id,
+        userId: users[0]?._id,
+        friendId: users[i]?._id,
       });
     }
     // Some random connections
-    await Friends.create({ userId: users[1]._id, friendId: users[2]._id });
-    await Friends.create({ userId: users[2]._id, friendId: users[3]._id });
-    await Friends.create({ userId: users[3]._id, friendId: users[4]._id });
-    await Friends.create({ userId: users[4]._id, friendId: users[5]._id });
+    await Friends.create({ userId: users[1]?._id, friendId: users[2]?._id });
+    await Friends.create({ userId: users[2]?._id, friendId: users[3]?._id });
+    await Friends.create({ userId: users[3]?._id, friendId: users[4]?._id });
+    await Friends.create({ userId: users[4]?._id, friendId: users[5]?._id });
     logger.info("Friend connections created.");
 
     // 3. Create 5 groups
     logger.info("Creating groups...");
-    const groups = [];
+    const groups: any[] = [];
     for (let i = 1; i <= 5; i++) {
       const group = await Conversation.create({
         name: `Group Chat ${i}`,
         type: ConversationType.GROUP,
-        ownerId: users[i % users.length]._id,
+        ownerId: users[i % users.length]?._id,
         avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=group${i}`,
       });
       groups.push(group);
@@ -74,7 +73,7 @@ async function seed() {
       for (let j = 0; j < memberCount; j++) {
         const userIndex = (i + j) % users.length;
         await Participant.create({
-          userId: users[userIndex]._id,
+          userId: users[userIndex]?._id,
           conversationId: group._id,
         });
       }
@@ -84,14 +83,14 @@ async function seed() {
     logger.info("Creating Direct Messages...");
     for (let i = 1; i <= 3; i++) {
       const dm = await Conversation.create({
-        name: `DM ${users[0].username}-${users[i].username}`,
+        name: `DM ${users[0]?.username}-${users[i]?.username}`,
         type: ConversationType.DIRECT,
-        ownerId: users[0]._id,
+        ownerId: users[0]?._id,
       });
       groups.push(dm);
 
-      await Participant.create({ userId: users[0]._id, conversationId: dm._id });
-      await Participant.create({ userId: users[i]._id, conversationId: dm._id });
+      await Participant.create({ userId: users[0]?._id, conversationId: dm._id });
+      await Participant.create({ userId: users[i]?._id, conversationId: dm._id });
     }
 
     logger.info(`Created ${groups.length} conversations (groups + DMs).`);
@@ -120,6 +119,8 @@ async function seed() {
       const conversation = groups[i % groups.length];
       const participants = await Participant.find({ conversationId: conversation._id });
       const randomParticipant = participants[Math.floor(Math.random() * participants.length)];
+
+      if (!randomParticipant || !conversation) continue;
 
       await Message.create({
         senderId: randomParticipant.userId,

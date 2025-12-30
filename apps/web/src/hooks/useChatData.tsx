@@ -1,6 +1,6 @@
 import { useConversationMessagesQuery } from "@/services/api/messages";
 import { Message, useChatStore } from "@/store/useChatStore";
-import { MessageDto } from "@notify/types";
+import { MessageDto } from "@raven/types";
 import { useMemo } from "react";
 
 // Hook for managing chat data and messages

@@ -3,10 +3,10 @@ version: 0.1
 build:
   commands:
     - cd ../.. && pnpm install
-    - cd ../.. && pnpm --filter @notify/api build
+    - cd ../.. && pnpm --filter @raven/api build
 
 start:
-  command: cd ../.. && pnpm --filter @notify/api start
+  command: cd ../.. && pnpm --filter @raven/api start
 
 env:
   - key: NODE_ENV

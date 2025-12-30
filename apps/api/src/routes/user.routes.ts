@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { UserController } from '@/controllers/user.controller';
 import { validateDto } from '@/middleware/validation.middleware';
-import { UpdateProfileDto } from '@notify/validators';
+import { UpdateProfileDto } from '@raven/validators';
 
 const router = Router();
 const userController = new UserController();

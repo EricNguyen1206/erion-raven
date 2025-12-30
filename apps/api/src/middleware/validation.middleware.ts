@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { validate, ValidationError as ClassValidationError } from "class-validator";
 import { plainToClass } from "class-transformer";
 import { logger } from "@/utils/logger";
-import { ValidationError } from "@notify/shared";
+import { ValidationError } from "@raven/shared";
 
 export const validateDto = (dtoClass: any) => {
   return async (req: Request, _res: Response, next: NextFunction) => {

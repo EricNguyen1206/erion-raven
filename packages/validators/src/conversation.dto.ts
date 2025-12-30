@@ -1,19 +1,22 @@
-import { IsString, IsEnum, IsArray, IsUUID } from "class-validator";
-import { ConversationType } from "@notify/types";
+import { IsString, IsEnum, IsArray, IsOptional } from "class-validator";
+import { ConversationType } from "@raven/types";
+import { IsMongoDbId } from "./decorators";
 
 export class CreateConversationRequestDto {
   @IsString()
+  @IsOptional()
   name!: string;
 
   @IsString()
+  @IsOptional()
   avatar?: string;
 
   @IsEnum(ConversationType)
   type!: ConversationType;
 
   @IsArray()
-  @IsString()
-  @IsUUID("4", { each: true })
+  @IsString({ each: true })
+  @IsMongoDbId({ each: true })
   userIds!: string[];
 }
 
@@ -26,7 +29,6 @@ export class UpdateConversationRequestDto {
 }
 
 export class ConversationMembershipRequest {
-  @IsString()
-  @IsUUID("4", { each: true })
+  @IsMongoDbId()
   userId!: string;
 }

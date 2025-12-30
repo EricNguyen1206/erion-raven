@@ -4,7 +4,7 @@ import { Search, X, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useSearchUsersQuery } from '@/services/api/users';
-import type { UserDto } from '@notify/types';
+import type { UserDto } from '@raven/types';
 
 interface UserSearchInputProps {
   selectedUsers: UserDto[];
@@ -12,6 +12,7 @@ interface UserSearchInputProps {
   maxUsers?: number;
   minUsers?: number;
   disabled?: boolean;
+  currentUserId?: string;
 }
 
 export const UserSearchInput = ({
@@ -20,6 +21,7 @@ export const UserSearchInput = ({
   maxUsers = 4,
   minUsers = 2,
   disabled = false,
+  currentUserId,
 }: UserSearchInputProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -28,10 +30,12 @@ export const UserSearchInput = ({
   // Use generated API hook for user search
   const { data: searchResponse, isLoading: isSearching } = useSearchUsersQuery(searchTerm);
 
-  // Extract data from response and filter out already selected users
+  // Extract data from response and filter out already selected users and current user
   const searchResults = searchResponse || [];
   const filteredResults = searchResults.filter(
-    (user: UserDto) => !selectedUsers.some((selected) => selected.id === user.id)
+    (user: UserDto) =>
+      !selectedUsers.some((selected) => selected.id === user.id) &&
+      (!currentUserId || user.id !== currentUserId)
   );
 
   const handleUserSelect = (user: UserDto) => {

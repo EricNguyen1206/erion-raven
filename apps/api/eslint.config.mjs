@@ -1,4 +1,4 @@
-import nodeConfig from '@notify/eslint/node';
+import nodeConfig from '@raven/eslint/node';
 
 export default [
   ...nodeConfig,

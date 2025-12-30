@@ -9,7 +9,7 @@ import {
   ApiMessageResponse,
   ApiResponse,
   UserDto,
-} from '@notify/types';
+} from '@raven/types';
 
 export const authService = {
   /**

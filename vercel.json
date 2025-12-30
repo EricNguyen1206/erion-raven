@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @notify/web build",
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @raven/web build",
   "outputDirectory": "apps/web/.next",
   "installCommand": "cd ../.. && pnpm install",
   "framework": "nextjs",

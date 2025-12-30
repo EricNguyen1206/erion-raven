@@ -18,15 +18,15 @@ pnpm install
 pnpm dev
 
 # Start apps individually
-pnpm --filter @notify/api dev      # Backend only (port 8080)
-pnpm --filter @notify/web dev      # Frontend only (port 3001)
+pnpm --filter @raven/api dev      # Backend only (port 8080)
+pnpm --filter @raven/web dev      # Frontend only (port 3001)
 
 # Build all packages
 pnpm build
 
 # Build specific package
-pnpm --filter @notify/api build
-pnpm --filter @notify/web build
+pnpm --filter @raven/api build
+pnpm --filter @raven/web build
 ```
 
 ### Testing Commands
@@ -42,13 +42,13 @@ pnpm test:watch
 pnpm test:coverage
 
 # Backend tests only
-pnpm --filter @notify/api test
+pnpm --filter @raven/api test
 
 # Frontend tests only
-pnpm --filter @notify/web test
+pnpm --filter @raven/web test
 
 # Frontend test UI (Vitest)
-pnpm --filter @notify/web test:ui
+pnpm --filter @raven/web test:ui
 ```
 
 ### Code Quality Commands
@@ -167,14 +167,14 @@ The backend follows a service-oriented architecture:
 
 - **Types** (`packages/types/src/`): All shared TypeScript interfaces and types
   - Use these for consistency between frontend and backend
-  - Export from `@notify/types`
+  - Export from `@raven/types`
 
 - **Validators** (`packages/validators/src/`): Zod schemas for input validation
   - Used on both frontend (form validation) and backend (API validation)
-  - Export from `@notify/validators`
+  - Export from `@raven/validators`
 
 - **Shared Utilities** (`packages/shared/src/`): Common helpers, constants, error classes
-  - Export from `@notify/shared`
+  - Export from `@raven/shared`
 
 ### Backend Patterns
 
@@ -300,7 +300,7 @@ pnpm dev
 
 ## Critical Notes
 
-- **Package Names:** Backend is `@notify/api`, Frontend is `@notify/web` (historical naming from "Notify" project)
+- **Package Names:** Backend is `@raven/api`, Frontend is `@raven/web` (historical naming from "Notify" project)
 - **Ports:** API runs on 8080 (not 3000), Web runs on 3001
 - **Authentication:** Uses httpOnly cookies with JWT, not Authorization headers
 - **WebSocket:** Shares the same port as the API (8080), upgrade from HTTP

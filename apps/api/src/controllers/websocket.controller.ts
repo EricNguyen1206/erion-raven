@@ -11,7 +11,7 @@ import {
   LeaveConversationPayload,
   SendMessagePayload,
   createErrorPayload,
-} from '@notify/types';
+} from '@raven/types';
 import { AuthenticatedSocket } from '@/middleware/socketAuth.middleware';
 
 /**

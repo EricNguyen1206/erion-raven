@@ -458,7 +458,7 @@ socket.on('disconnect', (reason) => {
 The server emits errors using the `createErrorPayload` helper:
 
 ```typescript
-import { createErrorPayload, SocketEvent } from '@notify/types';
+import { createErrorPayload, SocketEvent } from '@raven/types';
 
 // Emit error to client
 const errorPayload = createErrorPayload(
@@ -683,11 +683,11 @@ function sendMessage(conversationId: string, text: string) {
 ### 6. **Use TypeScript Types**
 
 ```typescript
-import { 
+import {
   JoinConversationPayload,
   SendMessagePayload,
-  NewMessagePayload 
-} from '@notify/types';
+  NewMessagePayload
+} from '@raven/types';
 
 socket.emit('join_conversation', {
   conversation_id: '123'

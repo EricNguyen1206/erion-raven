@@ -10,7 +10,7 @@ import {
   ConversationListApiResponse,
   CreateConversationRequest,
   ConversationListResponseDto,
-} from '@notify/types';
+} from '@raven/types';
 import {
   useMutation,
   UseMutationOptions,

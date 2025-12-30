@@ -1,9 +1,9 @@
 {
-  "name": "@notify/eslint",
+  "name": "@raven/eslint",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Shared ESLint configuration for Notify monorepo",
+  "description": "Shared ESLint configuration for Raven monorepo",
   "main": "index.js",
   "exports": {
     ".": "./index.js",

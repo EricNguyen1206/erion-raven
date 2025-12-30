@@ -1,4 +1,4 @@
-import { ApiErrorResponse, MessageDto, PaginatedApiResponse } from '@notify/types';
+import { ApiErrorResponse, MessageDto, PaginatedApiResponse } from '@raven/types';
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 

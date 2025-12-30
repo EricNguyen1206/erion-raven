@@ -24,7 +24,7 @@ import {
   ServerToClientEvents,
   ClientToServerEvents,
   MessageDto,
-} from "@notify/types";
+} from "@raven/types";
 import { apiUrl } from "@/lib/config";
 
 // API base URL from config

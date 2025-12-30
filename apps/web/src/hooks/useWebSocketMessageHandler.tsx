@@ -1,5 +1,5 @@
 import { Message, useChatStore } from "@/store/useChatStore";
-import { MessageDto } from "@notify/types";
+import { MessageDto } from "@raven/types";
 import { useEffect } from "react";
 
 // Hook for handling incoming WebSocket messages

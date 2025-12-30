@@ -9,7 +9,7 @@ import {
   FriendDto,
   FriendRequestDto,
   FriendRequestsResponse,
-} from '@notify/types';
+} from '@raven/types';
 import {
   useMutation,
   UseMutationOptions,

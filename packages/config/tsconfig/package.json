@@ -1,8 +1,8 @@
 {
-  "name": "@notify/tsconfig",
+  "name": "@raven/tsconfig",
   "version": "1.0.0",
   "private": true,
-  "description": "Shared TypeScript configurations for Notify monorepo",
+  "description": "Shared TypeScript configurations for Raven monorepo",
   "files": [
     "base.json",
     "node.json",
