@@ -18,25 +18,17 @@ pnpm --filter @raven/web dev
 # Build all packages
 pnpm build
 
-# Build specific package
-pnpm --filter @raven/api build
-pnpm --filter @raven/web build
-
 # Run all tests
 pnpm test
 
-# Run tests in watch mode
-pnpm test:watch
+# Run specific backend test file
+pnpm --filter @raven/api test -- chat.test
 
-# Run tests with coverage
-pnpm test:coverage
-
-# Run specific backend test
-pnpm --filter @raven/api test -- <test-file-pattern>
-pnpm --filter @raven/api test chat.test
+# Run specific backend test by name
+pnpm --filter @raven/api test -- -t "should allow user to connect"
 
 # Run specific frontend test
-pnpm --filter @raven/web test <test-file>
+pnpm --filter @raven/web test chat-flow.test
 
 # Lint all packages
 pnpm lint
@@ -54,42 +46,24 @@ pnpm type-check
 ## Code Style Guidelines
 
 ### Imports
-- Use workspace package names for shared code: `@raven/types`, `@raven/validators`, `@raven/shared`
-- Backend: Use `@/` alias for internal imports (configured in tsconfig)
-- Frontend: Use `@/` alias for internal imports
-- Group imports: external packages → workspace packages → relative imports
-- Example:
-  ```typescript
-  import express from 'express';
-  import { UserDto } from '@raven/types';
-  import { AuthService } from '@/services/auth.service';
-  ```
+- Workspace packages: `@raven/types`, `@raven/validators`, `@raven/shared`
+- Internal: Use `@/` alias for both backend and frontend
+- Order: external packages → workspace packages → relative imports
 
 ### Formatting (Prettier)
 - Semicolons: required
 - Trailing commas: ES5
-- Quotes: single
-- Print width: 100
-- Tab width: 2 spaces (no tabs)
-- Arrow function parens: always
-- Line endings: LF
-- JSX quotes: double
+- Quotes: single (JS/TS), double for JSX
+- Print width: 100, Tab width: 2, No tabs
+- Arrow function parens: always, Line endings: LF
 
 ### TypeScript
-- Strict typing: no `any` unless unavoidable (use `unknown` instead)
-- Shared types: Define in `packages/types/src/` and export from `@raven/types`
-- Explicit return types: Required in services, optional in components
-- Interfaces vs Types: Use interfaces for shapes (models, DTOs), types for unions/intersections
-- MongoDB IDs: Use `string` representation, not `ObjectId` in type definitions
-- Example:
-  ```typescript
-  interface User {
-    id: string;
-    username: string;
-  }
-
-  type UserRole = 'admin' | 'user' | 'guest';
-  ```
+- No `any` (use `unknown` instead), strict typing required
+- Shared types in `packages/types/src/`, exported from `@raven/types`
+- Explicit return types in services, optional in components
+- Interfaces for shapes (models/DTOs), types for unions/intersections
+- MongoDB IDs as `string` in type definitions
+- Interface naming: `IUser` for Mongoose models only, no prefix otherwise
 
 ### Naming Conventions
 - Components: PascalCase (`UserAvatar`, `ChatPanel`)
@@ -98,55 +72,18 @@ pnpm type-check
 - Functions/Methods: camelCase (`signIn`, `sendMessage`)
 - Variables: camelCase (`userId`, `accessToken`)
 - Constants: UPPER_SNAKE_CASE (`MAX_RETRIES`, `API_BASE_URL`)
-- Interfaces: PascalCase with `I` prefix for Mongoose models only (`IUser`), no prefix otherwise
 
 ### Error Handling
-- Backend: Wrap controller/service methods in try-catch, throw typed errors
-- Frontend: Use try-catch in async functions, show toast notifications
-- Logging: Backend uses `logger.error()` from utils, frontend uses `console.error()`
-- Error objects: Use specific error messages, avoid exposing sensitive data
-- Example:
-  ```typescript
-  // Backend
-  public async signup(data: SignupRequestDto): Promise<UserDto> {
-    try {
-      // logic
-    } catch (error) {
-      logger.error('Signup error:', error);
-      throw error;
-    }
-  }
-
-  // Frontend
-  signIn: async (email, password) => {
-    try {
-      await authService.signIn({ email, password });
-      toast.success('Welcome back!');
-    } catch (error) {
-      console.error(error);
-      toast.error('Sign in failed');
-    }
-  }
-  ```
+- Backend: Wrap controller/service methods in try-catch, use `logger.error()` from utils
+- Frontend: Use try-catch in async functions, show toast notifications, use `console.error()`
+- Never log or expose sensitive data (tokens, passwords, emails)
 
 ### React Patterns
 - Functional components with hooks only (no class components)
-- State management: Zustand for global state, TanStack Query for server state
-- Component structure: Atomic Design (atoms → molecules → organisms → templates)
+- Zustand for global state, TanStack Query for server state
+- Atomic Design structure: atoms → molecules → organisms → templates
 - ClassNames: Use `cn()` utility for merging Tailwind classes
 - Props: Define interfaces explicitly, no inline types
-- Example:
-  ```typescript
-  interface UserAvatarProps {
-    name: string;
-    avatarUrl?: string;
-    size?: 'sm' | 'md' | 'lg';
-  }
-
-  export const UserAvatar = ({ name, avatarUrl, size = 'md' }: UserAvatarProps) => {
-    return <div className={cn('avatar', `avatar-${size}`)}>{name}</div>;
-  };
-  ```
 
 ### Backend Patterns
 - Controllers: Thin - delegate to services, handle request/response only
@@ -155,43 +92,20 @@ pnpm type-check
 - Routes: Prefix with `/api/v1`, apply middleware appropriately
 - Validation: Use Zod schemas from `@raven/validators`
 - Environment: Use `process.env['KEY']` for variable access
-- Example:
-  ```typescript
-  export class AuthService {
-    public async signup(data: SignupRequestDto): Promise<UserDto> {
-      const existingUser = await User.findOne({ email: data.email });
-      if (existingUser) throw new Error('Email already exists');
-
-      const hashedPassword = await bcrypt.hash(data.password, 12);
-      const user = new User({ ...data, password: hashedPassword });
-      return await user.save();
-    }
-  }
-  ```
 
 ### Testing
-- Backend: Jest + Supertest, use MongoDB Memory Server for integration tests
-- Frontend: Vitest + React Testing Library, mock API calls with MSW
-- Test location: Place next to tested file in `__tests__/` or `tests/` directory
+- Backend: Jest + Supertest, MongoDB Memory Server for integration tests
+- Frontend: Vitest + React Testing Library, MSW for API mocking
+- Location: `__tests__/` or `tests/` directory next to tested file
 - Structure: AAA pattern (Arrange, Act, Assert)
 - Mocks: Use `jest.mock()` for external dependencies
-- Single test command:
-  ```bash
-  # Backend
-  pnpm --filter @raven/api test -- chat.test
-  pnpm --filter @raven/api test -- -t "should allow user to connect"
-
-  # Frontend
-  pnpm --filter @raven/web test chat-flow.test
-  ```
 
 ### Security
-- Authentication: JWT access tokens (15min) + refresh tokens (7d) in httpOnly cookies
+- JWT access tokens (15min) + refresh tokens (7d) in httpOnly cookies
 - Never store tokens in localStorage or memory
 - Rate limiting: Redis-based (auth: 5 req/15min, general: 100 req/15min)
-- Input validation: All inputs validated with Zod schemas
+- All inputs validated with Zod schemas
 - Passwords: Bcrypt with 10-12 rounds
-- Never log or expose sensitive data (tokens, passwords, emails)
 
 ### File Organization
 ```
@@ -205,28 +119,17 @@ apps/api/src/
 └── utils/           # Utility functions
 
 apps/web/src/
-├── components/
-│   ├── atoms/       # Basic UI elements
-│   ├── molecules/   # Composite components
-│   ├── organisms/   # Complex components
-│   ├── templates/   # Layout templates
-│   └── ui/          # shadcn/ui components
+├── components/      # atoms/molecules/organisms/templates/ui
 ├── hooks/           # Custom React hooks
 ├── services/        # API service functions
 ├── store/           # Zustand stores
 └── pages/           # Page components
 ```
 
-### WebSocket Events
-- Server handlers: `apps/api/src/services/websocket.service.ts`
-- Client: Socket instance in `apps/web/src/services/websocket.ts`
-- Events: Reference `_docs/WEBSOCKET_EVENTS.md` for specifications
-- Rooms: Users join conversation rooms, messages broadcast to room members
-
 ### Critical Notes
-- Package names: Backend is `@raven/api`, Frontend is `@raven/web`
+- Package names: Backend `@raven/api`, Frontend `@raven/web`
 - Ports: API on 8080, Web on 3001
 - Always run `pnpm lint` and `pnpm type-check` before committing
 - Test coverage target: 80%+ for statements/functions/lines
-- MongoDB ObjectIds: Use string representation in TypeScript types
 - Never commit secrets or keys (.env files, credentials.json)
+- WebSocket events: Reference `_docs/WEBSOCKET_EVENTS.md` for specifications

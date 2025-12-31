@@ -21,7 +21,7 @@ export default function MessageBubble({
   const isSent = variant === "sent"
 
   return (
-    <div className={cn("flex h-16 shrink-0 w-full items-end gap-3 py-2", isSent ? "justify-end" : "justify-start", className)}>
+    <div className={cn("flex min-h-16 shrink-0 w-full items-end gap-3 py-2", isSent ? "justify-end" : "justify-start", className)}>
       {!isSent && (
         <Avatar className="h-7 w-7 rounded-lg flex-shrink-0 border-none shadow-none">
           <AvatarImage src={avatarUrl || "/placeholder.svg"} className="object-cover" />

@@ -2,7 +2,7 @@ import { Conversation, IConversation } from "@/models/Conversation";
 import { User, IUser } from "@/models/User";
 import { Participant } from "@/models/Participant";
 import { UserService } from "@/services/user.service";
-import { ConversationDto, ConversationType } from "@raven/types";
+import { ConversationDetailDto, ConversationDto, ConversationType, UserDto } from "@raven/types";
 import { logger } from "@/utils/logger";
 import { UpdateConversationRequestDto } from "@raven/validators";
 
@@ -52,37 +52,69 @@ export class ConversationService {
     }
   }
 
-  async getConversationById(conversationId: string): Promise<IConversation | null> {
+  // Private method to fetch the raw Mongoose document (for internal use with .save(), etc.)
+  private async findConversationDocument(conversationId: string): Promise<IConversation | null> {
     try {
-      const conversation = await Conversation.findOne({
+      return await Conversation.findOne({
         _id: conversationId,
         deletedAt: null,
       });
+    } catch (error) {
+      logger.error("Find conversation document error:", error);
+      throw error;
+    }
+  }
 
-      if (conversation) {
-        // Manually load participants with user data
-        const participants = await Participant.find({
-          conversationId: conversation._id,
-          deletedAt: null,
-        }).populate<{ userId: IUser }>("userId");
+  // Get conversation by ID with members (for API responses)
+  async getConversationById(conversationId: string): Promise<ConversationDetailDto | null> {
+    try {
+      const conversation = await this.findConversationDocument(conversationId);
 
-        // Attach participants to conversation object for compatibility
-        (conversation as any).participants = participants.map((p) => ({
-          ...p.toObject(),
-          user: p.userId,
-        }));
+      if (!conversation) {
+        return null;
       }
 
-      return conversation;
+      // Manually load participants with user data
+      const participants = await Participant.find({
+        conversationId: conversation._id,
+        deletedAt: null,
+      }).populate<{ userId: IUser }>("userId");
+
+      // Convert to UserDto[] for the members field
+      const members: UserDto[] = participants
+        .filter((p) => p.userId)
+        .map((p) => {
+          const member: UserDto = {
+            id: p.userId.id,
+            username: p.userId.username,
+            email: p.userId.email,
+            createdAt: p.userId.createdAt,
+          };
+          if (p.userId.avatar) {
+            member.avatar = p.userId.avatar;
+          }
+          return member;
+        });
+
+      // Convert to plain object and attach members for proper JSON serialization
+      return {
+        id: conversation.id,
+        name: conversation.name,
+        ...(conversation.avatar && { avatar: conversation.avatar }),
+        type: conversation.type,
+        ownerId: conversation.ownerId.toString(),
+        createdAt: conversation.createdAt,
+        members,
+      };
     } catch (error) {
       logger.error("Get conversation by ID error:", error);
       throw error;
     }
   }
 
-  // Alias for WebSocket service compatibility
+  // Alias for WebSocket service compatibility - returns Mongoose document
   async findById(conversationId: string): Promise<IConversation | null> {
-    return this.getConversationById(conversationId);
+    return this.findConversationDocument(conversationId);
   }
 
   // Get all conversations for a user, separated by type (direct/group)
@@ -205,7 +237,7 @@ export class ConversationService {
     updateData: UpdateConversationRequestDto
   ): Promise<void> {
     try {
-      const conversation = await this.getConversationById(conversationId);
+      const conversation = await this.findConversationDocument(conversationId);
       if (!conversation) {
         throw new Error("Conversation not found");
       }
@@ -226,7 +258,7 @@ export class ConversationService {
   // Delete conversation (only owner can delete)
   async deleteConversation(ownerId: string, conversationId: string): Promise<void> {
     try {
-      const conversation = await this.getConversationById(conversationId);
+      const conversation = await this.findConversationDocument(conversationId);
       if (!conversation) {
         throw new Error("Conversation not found");
       }
@@ -253,7 +285,7 @@ export class ConversationService {
     targetUserId: string
   ): Promise<void> {
     try {
-      const conversation = await this.getConversationById(conversationId);
+      const conversation = await this.findConversationDocument(conversationId);
       if (!conversation) {
         throw new Error("Conversation not found");
       }
@@ -290,7 +322,7 @@ export class ConversationService {
     targetUserId: string
   ): Promise<void> {
     try {
-      const conversation = await this.getConversationById(conversationId);
+      const conversation = await this.findConversationDocument(conversationId);
       if (!conversation) {
         throw new Error("Conversation not found");
       }
@@ -325,7 +357,7 @@ export class ConversationService {
   }
 
   async leaveConversation(userId: string, conversationId: string) {
-    const conversation = await this.getConversationById(conversationId);
+    const conversation = await this.findConversationDocument(conversationId);
     if (!conversation) {
       throw new Error("Conversation not found");
     }

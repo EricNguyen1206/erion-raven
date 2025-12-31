@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { ConversationService } from '@/services/conversation.service';
 import { logger } from '@/utils/logger';
 import { AuthenticatedRequest } from '@/middleware/auth.middleware';
-import { ApiResponse, ConversationDetailDto, ConversationType } from '@raven/types';
+import { ApiResponse, ConversationDetailDto, ConversationType, ConversationListDto } from '@raven/types';
 
 export class ConversationController {
   private conversationService: ConversationService;
@@ -20,10 +20,10 @@ export class ConversationController {
       logger.debug('TEST2', typeof this.conversationService);
       const conversations = await this.conversationService.getAllConversation(userId);
       logger.debug('Get user debug', { conversations });
-      const resData: ApiResponse<ConversationDetailDto[]> = {
+      const resData: ApiResponse<ConversationListDto> = {
         success: false,
         message: 'Not Fould',
-        data: [],
+        data: { direct: [], group: [] },
       };
 
       if (!conversations) {
@@ -32,7 +32,7 @@ export class ConversationController {
 
       resData.success = true;
       resData.message = 'Success';
-      resData.data = conversations! as unknown as ConversationDetailDto[];
+      resData.data = conversations!;
 
       res.status(200).json(resData);
     } catch (error) {
