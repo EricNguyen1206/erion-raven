@@ -21,8 +21,8 @@ const GroupMessageCard = ({ convo, isActive }: GroupMessageCardProps) => {
         )}
       >
         <Link to={`/messages/${convo.id}`} className="flex items-center gap-3">
-          <Hash className="w-[16px] h-[16px] opacity-50" />
-          <span className="text-sm font-light">{convo.name}</span>
+          <Hash className="w-[16px] h-[16px] opacity-50 font-light text-sidebar-foreground" />
+          <span className="text-sm font-light text-sidebar-foreground">{convo.name}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

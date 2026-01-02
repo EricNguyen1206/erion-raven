@@ -1,4 +1,4 @@
-import ChatHeader from "@/components/molecules/ChatHeader";
+import ChatHeader from "@/components/organisms/ChatHeader";
 import MessageBubble from "@/components/molecules/MessageBubble";
 import MessagesSkeleton from "@/components/molecules/MessagesSkeleton";
 import MessageInput from "@/components/organisms/MessageInput";
