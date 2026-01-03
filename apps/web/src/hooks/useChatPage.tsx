@@ -1,7 +1,7 @@
 import { useScreenDimensions } from "@/hooks/useScreenDimensions";
 import { useCurrentUserQuery } from "@/services/api/users";
 import { useConversationData } from "@/hooks/useSidebarActions";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useConversationNavigation } from "./useConversationNavigation";
 import { useWebSocketMessageHandler } from "./useWebSocketMessageHandler";
 import { useChatData } from "./useChatData";
@@ -19,29 +19,36 @@ export const useChatPage = () => {
 
   const { screenHeight, isOverFlow, updateOverflow } = useScreenDimensions(720);
   const { currentConversation, connectionState } = useConversationNavigation(isConversationsLoading);
-  const { chats, chatsLoading, addMessageToConversation } = useChatData(currentConversation?.id);
+  const { chats, chatsLoading, addMessageToConversation, loadMore, hasMore, isFetchingNextPage } = useChatData(currentConversation?.id);
   const { conversationData, conversationLoading, memberCount } = useConversationDetails(currentConversation?.id);
-  const { containerRef, mainRef, scrollToBottom, scrollToBottomOnUpdate } = useScrollBehavior();
+
+  const { containerRef, mainRef, viewportRef, scrollToBottom, scrollToBottomOnUpdate } = useScrollBehavior({
+    hasMore,
+    loadMore,
+    isFetching: isFetchingNextPage,
+  });
+
   const { formData, setFormData } = useChatFormState();
   const messageSending = useMessageSending(currentConversation?.id, sessionUser, setFormData, scrollToBottom, addMessageToConversation);
 
   // Handle incoming WebSocket messages
   useWebSocketMessageHandler(currentConversation?.id);
 
+  // Track the last message ID to determine when to scroll to bottom
+  const lastMessageIdRef = useRef<string | null>(null);
+
   // Scroll effects
   useEffect(() => {
-    if (chats !== undefined && chats?.length) {
-      scrollToBottom();
+    if (chats && chats.length > 0) {
+      const lastMessage = chats[chats.length - 1];
+
+      // Check if the last message has changed (new message added or conversation switched)
+      if (lastMessage.id !== lastMessageIdRef.current) {
+        lastMessageIdRef.current = lastMessage.id;
+        scrollToBottomOnUpdate();
+      }
     }
-  }, [chats?.length, scrollToBottom]);
-
-  useEffect(() => {
-    scrollToBottomOnUpdate();
   }, [chats, scrollToBottomOnUpdate]);
-
-  useEffect(() => {
-    scrollToBottomOnUpdate();
-  }, [chatsLoading, scrollToBottomOnUpdate]);
 
   return {
     // User data
@@ -56,6 +63,7 @@ export const useChatPage = () => {
     // Chat data
     chats,
     chatsLoading,
+    isFetchingNextPage,
 
     // WebSocket state
     connectionState,
@@ -75,5 +83,6 @@ export const useChatPage = () => {
     // Refs
     containerRef,
     mainRef,
+    viewportRef,
   };
 };

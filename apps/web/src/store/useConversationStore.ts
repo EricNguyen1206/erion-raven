@@ -1,5 +1,6 @@
 import { ConversationDto } from '@raven/types';
 import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 // stores/conversationStore.ts
 export interface ConversationState {
@@ -38,100 +39,105 @@ export interface ConversationState {
   isCurrentConversation: (conversationId: string) => boolean;
 }
 
-export const useConversationStore = create<ConversationState>((set, get) => ({
-  // Existing state
-  unreadCounts: {},
-  activeConversationId: null,
-  currentConversation: null,
-  groupConversations: [],
-  directConversations: [],
+export const useConversationStore = create<ConversationState>()(
+  devtools(
+    (set, get) => ({
+      // Existing state
+      unreadCounts: {},
+      activeConversationId: null,
+      currentConversation: null,
+      groupConversations: [],
+      directConversations: [],
 
-  // New WebSocket conversation tracking state
-  currentConversationId: null,
-  joinedConversations: new Set<string>(),
-
-  // Existing methods
-  setUnreadCount: (conversationId, count) =>
-    set((state) => ({
-      unreadCounts: { ...state.unreadCounts, [conversationId]: count },
-    })),
-  setActiveConversation: (conversationId) => set({ activeConversationId: conversationId }),
-  setCurrentConversation: (conversation) => set({ currentConversation: conversation }),
-  markAsRead: (conversationId) =>
-    set((state) => ({
-      unreadCounts: { ...state.unreadCounts, [conversationId]: 0 },
-    })),
-  setGroupConversations: (conversations: ConversationDto[]) =>
-    set({ groupConversations: conversations }),
-  setDirectConversations: (conversations: ConversationDto[]) =>
-    set({ directConversations: conversations }),
-  addGroupConversation: (conversation: ConversationDto) =>
-    set((state) => ({
-      groupConversations: [...state.groupConversations, conversation],
-    })),
-  addDirectConversation: (conversation: ConversationDto) =>
-    set((state) => ({
-      directConversations: [...state.directConversations, conversation],
-    })),
-  removeConversation: (conversationId: string, type: 'group' | 'direct') =>
-    set((state) => ({
-      groupConversations:
-        type === 'group'
-          ? state.groupConversations.filter((ch) => ch.id !== conversationId)
-          : state.groupConversations,
-      directConversations:
-        type === 'direct'
-          ? state.directConversations.filter((ch) => ch.id !== conversationId)
-          : state.directConversations,
-    })),
-
-  // New WebSocket conversation management methods
-  setCurrentConversationId: (conversationId: string | null) => {
-    set({ currentConversationId: conversationId });
-  },
-
-  addJoinedConversation: (conversationId: string) => {
-    set((state) => {
-      const newJoinedConversations = new Set(state.joinedConversations);
-      newJoinedConversations.add(conversationId);
-      return { joinedConversations: newJoinedConversations };
-    });
-  },
-
-  removeJoinedConversation: (conversationId: string) => {
-    set((state) => {
-      const newJoinedConversations = new Set(state.joinedConversations);
-      newJoinedConversations.delete(conversationId);
-      return {
-        joinedConversations: newJoinedConversations,
-        // Clear current conversation if we're leaving it
-        currentConversationId:
-          state.currentConversationId === conversationId ? null : state.currentConversationId,
-      };
-    });
-  },
-
-  clearJoinedConversations: () => {
-    set({
-      joinedConversations: new Set<string>(),
+      // New WebSocket conversation tracking state
       currentConversationId: null,
-    });
-  },
+      joinedConversations: new Set<string>(),
 
-  // New computed functions
-  getCurrentConversationId: () => {
-    return get().currentConversationId;
-  },
+      // Existing methods
+      setUnreadCount: (conversationId, count) =>
+        set((state) => ({
+          unreadCounts: { ...state.unreadCounts, [conversationId]: count },
+        })),
+      setActiveConversation: (conversationId) => set({ activeConversationId: conversationId }),
+      setCurrentConversation: (conversation) => set({ currentConversation: conversation }),
+      markAsRead: (conversationId) =>
+        set((state) => ({
+          unreadCounts: { ...state.unreadCounts, [conversationId]: 0 },
+        })),
+      setGroupConversations: (conversations: ConversationDto[]) =>
+        set({ groupConversations: conversations }),
+      setDirectConversations: (conversations: ConversationDto[]) =>
+        set({ directConversations: conversations }),
+      addGroupConversation: (conversation: ConversationDto) =>
+        set((state) => ({
+          groupConversations: [...state.groupConversations, conversation],
+        })),
+      addDirectConversation: (conversation: ConversationDto) =>
+        set((state) => ({
+          directConversations: [...state.directConversations, conversation],
+        })),
+      removeConversation: (conversationId: string, type: 'group' | 'direct') =>
+        set((state) => ({
+          groupConversations:
+            type === 'group'
+              ? state.groupConversations.filter((ch) => ch.id !== conversationId)
+              : state.groupConversations,
+          directConversations:
+            type === 'direct'
+              ? state.directConversations.filter((ch) => ch.id !== conversationId)
+              : state.directConversations,
+        })),
 
-  isInConversation: (conversationId: string) => {
-    return get().joinedConversations.has(conversationId);
-  },
+      // New WebSocket conversation management methods
+      setCurrentConversationId: (conversationId: string | null) => {
+        set({ currentConversationId: conversationId });
+      },
 
-  getJoinedConversations: () => {
-    return Array.from(get().joinedConversations);
-  },
+      addJoinedConversation: (conversationId: string) => {
+        set((state) => {
+          const newJoinedConversations = new Set(state.joinedConversations);
+          newJoinedConversations.add(conversationId);
+          return { joinedConversations: newJoinedConversations };
+        });
+      },
 
-  isCurrentConversation: (conversationId: string) => {
-    return get().currentConversationId === conversationId;
-  },
-}));
+      removeJoinedConversation: (conversationId: string) => {
+        set((state) => {
+          const newJoinedConversations = new Set(state.joinedConversations);
+          newJoinedConversations.delete(conversationId);
+          return {
+            joinedConversations: newJoinedConversations,
+            // Clear current conversation if we're leaving it
+            currentConversationId:
+              state.currentConversationId === conversationId ? null : state.currentConversationId,
+          };
+        });
+      },
+
+      clearJoinedConversations: () => {
+        set({
+          joinedConversations: new Set<string>(),
+          currentConversationId: null,
+        });
+      },
+
+      // New computed functions
+      getCurrentConversationId: () => {
+        return get().currentConversationId;
+      },
+
+      isInConversation: (conversationId: string) => {
+        return get().joinedConversations.has(conversationId);
+      },
+
+      getJoinedConversations: () => {
+        return Array.from(get().joinedConversations);
+      },
+
+      isCurrentConversation: (conversationId: string) => {
+        return get().currentConversationId === conversationId;
+      },
+    }),
+    { name: 'conversation-store' }
+  )
+);

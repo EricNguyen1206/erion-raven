@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Check, X, Loader2 } from "lucide-react"
 import { toast } from "react-toastify"
+import { useNavigate } from "react-router-dom"
 import {
   useFriendsQuery,
   useFriendRequestsQuery,
@@ -11,21 +12,21 @@ import {
   useDeclineFriendRequestMutation,
 } from "@/services/api/friends"
 
-const statusColors = {
-  online: "var(--accent)",
-  away: "var(--muted-foreground)",
-  offline: "var(--muted-foreground)",
-}
-
 export default function ContactsPage() {
+  const navigate = useNavigate()
+
   // Fetch friends and friend requests
   const { data: friends = [], isLoading: isLoadingFriends } = useFriendsQuery()
   const { data: friendRequests, isLoading: isLoadingRequests } = useFriendRequestsQuery()
 
   // Mutations
   const acceptMutation = useAcceptFriendRequestMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Friend request accepted!")
+      // Navigate to the newly created conversation
+      if (data.conversationId) {
+        navigate(`/messages/${data.conversationId}`)
+      }
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || "Failed to accept friend request")
@@ -184,13 +185,6 @@ export default function ContactsPage() {
                             {(friend?.username || "F").slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span
-                          className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-card"
-                          style={{
-                            backgroundColor: statusColors.offline, // TODO: Get real online status
-                            opacity: 0.6,
-                          }}
-                        />
                       </div>
 
                       <div className="flex-1 min-w-0">

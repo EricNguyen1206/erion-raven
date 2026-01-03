@@ -1,13 +1,24 @@
 import { Response } from 'express';
 import { FriendService } from '@/services/friend.service';
+import { RedisService } from '@/services/redis.service';
+import { PresenceService } from '@/services/presence.service';
 import { AuthenticatedRequest } from '@/middleware/auth.middleware';
 import { logger } from '@/utils/logger';
 
 export class FriendController {
   private friendService: FriendService;
+  private presenceService: PresenceService;
 
   constructor() {
     this.friendService = new FriendService();
+    const redisService = new RedisService();
+    // Note: WebSocketService is null here since we only need getFriendsOnlineStatus
+    // which doesn't require broadcasting
+    this.presenceService = new PresenceService(
+      redisService,
+      this.friendService,
+      null as any // WebSocketService not needed for read-only status checks
+    );
   }
 
   /**
@@ -207,6 +218,31 @@ export class FriendController {
       res.status(500).json({
         success: false,
         message: 'Failed to get friends',
+        details: error.message,
+      });
+    }
+  };
+
+  /**
+   * Get online status for all friends
+   * GET /api/v1/friends/online-status
+   */
+  public getFriendsOnlineStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.userId!;
+
+      const statuses = await this.presenceService.getFriendsOnlineStatus(userId);
+
+      res.status(200).json({
+        success: true,
+        data: { statuses },
+      });
+    } catch (error: any) {
+      logger.error('Get friends online status error:', error);
+
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get friends online status',
         details: error.message,
       });
     }

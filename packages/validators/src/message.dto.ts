@@ -1,9 +1,9 @@
-import { IsString, IsOptional, IsNumber, IsDefined, IsUUID } from "class-validator";
+import { IsString, IsOptional, IsNumber, IsDefined, IsMongoId } from "class-validator";
 
 export class SendMessageRequestDto {
   @IsString()
   @IsDefined()
-  @IsUUID()
+  @IsMongoId()
   conversationId!: string;
 
   @IsOptional()

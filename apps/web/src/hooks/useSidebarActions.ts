@@ -32,6 +32,7 @@ const transformConversationData = (conversations: any[], type: "group" | "direct
         name: ch.name,
         ownerId: String(ch.ownerId ?? ""),
         createdAt: ch.createdAt || new Date(),
+        otherUserId: String(ch.otherUserId ?? ""),
         type: type === "group" ? ConversationType.GROUP : ConversationType.DIRECT,
         avatar: ch.avatar || "",
       }) as ConversationDto

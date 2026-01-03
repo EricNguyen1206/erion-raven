@@ -10,6 +10,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { io, Socket } from "socket.io-client";
 import { useConversationStore } from "./useConversationStore";
+import { useOnlineStatusStore } from "./useOnlineStatusStore";
 import {
   ConnectionState,
   SocketEvent,
@@ -18,6 +19,7 @@ import {
   UserJoinedPayload,
   UserLeftPayload,
   ErrorPayload,
+  FriendStatusChangedPayload,
   createJoinConversationPayload,
   createLeaveConversationPayload,
   createSendMessagePayload,
@@ -30,6 +32,9 @@ import { apiUrl } from "@/lib/config";
 // API base URL from config
 const API_BASE_URL = apiUrl;
 
+// Heartbeat interval in milliseconds (30 seconds)
+const HEARTBEAT_INTERVAL_MS = 30000;
+
 // Main socket store state interface
 interface SocketState {
   // Connection state
@@ -41,6 +46,9 @@ interface SocketState {
   socket: Socket<ServerToClientEvents, ClientToServerEvents> | null;
   userId: string;
 
+  // Heartbeat interval reference
+  heartbeatIntervalId: ReturnType<typeof setInterval> | null;
+
   // Actions - simplified interface, no token needed
   connect: (userId: string) => Promise<void>;
   disconnect: () => void;
@@ -51,6 +59,8 @@ interface SocketState {
 
   // Internal methods
   setupEventHandlers: () => void;
+  startHeartbeat: () => void;
+  stopHeartbeat: () => void;
 }
 
 export const useSocketStore = create<SocketState>()(
@@ -62,6 +72,7 @@ export const useSocketStore = create<SocketState>()(
       isConnecting: false,
       socket: null,
       userId: "",
+      heartbeatIntervalId: null,
 
       /**
        * Connect to Socket.IO server
@@ -133,6 +144,9 @@ export const useSocketStore = create<SocketState>()(
 
               // Setup event handlers after connection
               get().setupEventHandlers();
+
+              // Start heartbeat for presence
+              get().startHeartbeat();
 
               // Auto re-join previously joined conversations
               try {
@@ -271,11 +285,63 @@ export const useSocketStore = create<SocketState>()(
             })
           );
         });
+
+        // Handle friend status change (presence)
+        socket.on(SocketEvent.FRIEND_STATUS_CHANGED, (payload: FriendStatusChangedPayload) => {
+          console.log("Friend status changed:", payload);
+
+          // Update the online status store
+          useOnlineStatusStore.getState().setUserStatus(
+            payload.user_id,
+            payload.status === 'online'
+          );
+        });
+      },
+
+      // Start heartbeat interval
+      startHeartbeat: () => {
+        const { socket, heartbeatIntervalId } = get();
+
+        // Clear existing interval if any
+        if (heartbeatIntervalId) {
+          clearInterval(heartbeatIntervalId);
+        }
+
+        if (!socket) return;
+
+        // Send initial heartbeat immediately
+        socket.emit(SocketEvent.HEARTBEAT, { timestamp: Date.now() });
+
+        // Start interval
+        const intervalId = setInterval(() => {
+          const currentSocket = get().socket;
+          if (currentSocket?.connected) {
+            currentSocket.emit(SocketEvent.HEARTBEAT, { timestamp: Date.now() });
+            console.log("Heartbeat sent");
+          }
+        }, HEARTBEAT_INTERVAL_MS);
+
+        set({ heartbeatIntervalId: intervalId });
+        console.log("Heartbeat interval started");
+      },
+
+      // Stop heartbeat interval
+      stopHeartbeat: () => {
+        const { heartbeatIntervalId } = get();
+
+        if (heartbeatIntervalId) {
+          clearInterval(heartbeatIntervalId);
+          set({ heartbeatIntervalId: null });
+          console.log("Heartbeat interval stopped");
+        }
       },
 
       // Disconnect from Socket.IO server
       disconnect: () => {
         const { socket } = get();
+
+        // Stop heartbeat first
+        get().stopHeartbeat();
 
         if (socket) {
           socket.disconnect();
@@ -286,6 +352,7 @@ export const useSocketStore = create<SocketState>()(
           error: null,
           isConnecting: false,
           socket: null,
+          heartbeatIntervalId: null,
         });
       },
 

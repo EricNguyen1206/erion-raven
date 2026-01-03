@@ -106,12 +106,16 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
       return;
     }
 
-    // Send friend request if not already friends
-    if (selectedUser && !isSelectedUserFriend) {
-      sendFriendRequestMutation.mutate(selectedUser.id);
+    // If not already friends, only send friend request (no conversation yet)
+    if (!isSelectedUserFriend) {
+      if (selectedUser) {
+        sendFriendRequestMutation.mutate(selectedUser.id);
+        setOpenDirectMessage(false);
+      }
+      return;
     }
 
-    // Create the direct conversation
+    // Only create conversation if already friends
     await createConversation();
   };
 
@@ -163,7 +167,7 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
                 <p className="text-sm text-amber-800">
                   {formData.selectedUsers[0]?.email} is not in your friends list. A friend request
-                  will be sent when you start this conversation.
+                  will be sent. Once they accept, a conversation will be created.
                 </p>
               </div>
             )}
@@ -184,10 +188,12 @@ const CreateNewDirectMessageDialog = (props: CreateNewDirectMessageDialogProps) 
               }
             >
               {loading || sendFriendRequestMutation.isPending
-                ? 'Creating...'
+                ? 'Sending...'
                 : existingDirectConversation
                   ? 'Open Conversation'
-                  : 'Create Direct Message'}
+                  : isSelectedUserFriend
+                    ? 'Create Direct Message'
+                    : 'Send Friend Request'}
             </Button>
           </DialogFooter>
         </form>

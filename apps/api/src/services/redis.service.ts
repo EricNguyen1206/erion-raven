@@ -1,6 +1,5 @@
 import { RedisClientType } from 'redis';
 import { getRedisConnection } from '@/config/redis';
-import { logger } from '@/utils/logger';
 
 export class RedisService {
   private client: RedisClientType;
@@ -26,12 +25,10 @@ export class RedisService {
       updated_at: Date.now(),
     });
 
-    // Set expiration for status (5 minutes)
-    pipeline.expire(`user:${userId}:status`, 300);
+    // Set expiration for status (1 minute for heartbeat-based TTL)
+    pipeline.expire(`user:${userId}:status`, 60);
 
     await pipeline.exec();
-
-    logger.debug('User set to online', { userId });
   }
 
   async setUserOffline(userId: string): Promise<void> {
@@ -50,9 +47,7 @@ export class RedisService {
     // Set longer expiration for offline status (24 hours)
     pipeline.expire(`user:${userId}:status`, 86400);
 
-    await pipeline.exec();
-
-    logger.debug('User set to offline', { userId });
+    await pipeline.exec()
   }
 
   async isUserOnline(userId: string): Promise<boolean> {
@@ -62,6 +57,36 @@ export class RedisService {
 
   async getOnlineUsers(): Promise<string[]> {
     return await this.client.sMembers('online_users');
+  }
+
+  /**
+   * Refresh user's online status TTL (called on heartbeat)
+   */
+  async refreshUserOnline(userId: string): Promise<void> {
+    const pipeline = this.client.multi();
+    pipeline.sAdd('online_users', userId);
+    pipeline.hSet(`user:${userId}:status`, {
+      status: 'online',
+      last_seen: Date.now(),
+      updated_at: Date.now(),
+    });
+    pipeline.expire(`user:${userId}:status`, 60);
+    await pipeline.exec();
+  }
+
+  /**
+   * Check online status for multiple users at once
+   */
+  async getMultipleUsersOnlineStatus(userIds: string[]): Promise<Record<string, boolean>> {
+    if (userIds.length === 0) return {};
+    const result: Record<string, boolean> = {};
+    const checks = await Promise.all(
+      userIds.map(id => this.client.sIsMember('online_users', id))
+    );
+    userIds.forEach((id, index) => {
+      result[id] = Boolean(checks[index]);
+    });
+    return result;
   }
 
   // =============================================================================
@@ -91,8 +116,6 @@ export class RedisService {
     };
 
     await this.publishConversationEvent(conversationId, joinEvent);
-
-    logger.debug('User joined conversation', { userId, conversationId });
   }
 
   async leaveConversation(userId: string, conversationId: string): Promise<void> {
@@ -115,8 +138,6 @@ export class RedisService {
     };
 
     await this.publishConversationEvent(conversationId, leaveEvent);
-
-    logger.debug('User left conversation', { userId, conversationId });
   }
 
   async getParticipants(conversationId: string): Promise<string[]> {
@@ -130,19 +151,16 @@ export class RedisService {
   async publishConversationMessage(conversationId: string, message: any): Promise<void> {
     const data = JSON.stringify(message);
     await this.client.publish(`chat:conversation:${conversationId}`, data);
-    logger.debug('Published conversation message', { conversationId });
   }
 
   async publishConversationEvent(conversationId: string, event: any): Promise<void> {
     const data = JSON.stringify(event);
     await this.client.publish(`conversation:${conversationId}:events`, data);
-    logger.debug('Published conversation event', { conversationId });
   }
 
   async publishUserNotification(userId: string, notification: any): Promise<void> {
     const data = JSON.stringify(notification);
     await this.client.publish(`user:${userId}:notifications`, data);
-    logger.debug('Published user notification', { userId });
   }
 
   // =============================================================================

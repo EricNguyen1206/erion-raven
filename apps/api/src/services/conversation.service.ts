@@ -23,19 +23,26 @@ export class ConversationService {
 
       let usrEmail = "Unknown";
       let avatar = "";
+      let otherUserId: string | undefined = undefined;
 
-      if (friends.length === 1 && friends[0]) {
-        usrEmail = friends[0].email;
-        avatar = friends[0].avatar || "";
-      } else if (friends.length > 1) {
-        // Multiple friends - avoid showing current user as conversation name
-        if (friends[0] && friends[0].id === userId && friends[1]) {
-          usrEmail = friends[1].email;
-          avatar = friends[1].avatar || "";
-        } else if (friends[0]) {
-          usrEmail = friends[0].email;
-          avatar = friends[0].avatar || "";
-        }
+      // Filter out the current user to find the "other" participant
+      const otherParticipants = friends.filter(f => f.id !== userId);
+      const otherUser = otherParticipants[0];
+
+      if (otherUser) {
+        usrEmail = otherUser.email;
+        avatar = otherUser.avatar || "";
+        otherUserId = otherUser.id;
+      }
+
+      // Log if otherUserId is still missing for a Direct conversation
+      if (!otherUserId && conversation.type === ConversationType.DIRECT) {
+        logger.warn('buildConversationDto: otherUserId missing for DIRECT conversation', {
+          conversationId: conversation.id,
+          userId,
+          friendsCount: friends.length,
+          friendIds: friends.map(f => f.id)
+        });
       }
 
       return {
@@ -43,6 +50,7 @@ export class ConversationService {
         name: usrEmail,
         avatar,
         ownerId: conversation.ownerId.toString(),
+        ...(otherUserId && { otherUserId }),
         type: conversation.type,
         createdAt: conversation.createdAt,
       };
@@ -66,7 +74,7 @@ export class ConversationService {
   }
 
   // Get conversation by ID with members (for API responses)
-  async getConversationById(conversationId: string): Promise<ConversationDetailDto | null> {
+  async getConversationById(conversationId: string, reqUserId?: string): Promise<ConversationDetailDto | null> {
     try {
       const conversation = await this.findConversationDocument(conversationId);
 
@@ -96,13 +104,30 @@ export class ConversationService {
           return member;
         });
 
+      let otherUserId: string | undefined;
+      let conversationName = conversation.name;
+      let conversationAvatar = conversation.avatar;
+
+      // If reqUserId is provided, try to find the "other" user to set dynamic name/avatar/id
+      if (reqUserId && conversation.type === ConversationType.DIRECT) {
+        const otherMember = members.find(m => m.id !== reqUserId);
+        if (otherMember) {
+          otherUserId = otherMember.id;
+          conversationName = otherMember.email;
+          if (otherMember.avatar) {
+            conversationAvatar = otherMember.avatar;
+          }
+        }
+      }
+
       // Convert to plain object and attach members for proper JSON serialization
       return {
         id: conversation.id,
-        name: conversation.name,
-        ...(conversation.avatar && { avatar: conversation.avatar }),
+        name: conversationName,
+        ...(conversationAvatar && { avatar: conversationAvatar }),
         type: conversation.type,
         ownerId: conversation.ownerId.toString(),
+        ...(otherUserId && { otherUserId }),
         createdAt: conversation.createdAt,
         members,
       };
@@ -123,22 +148,15 @@ export class ConversationService {
     group: ConversationDto[];
   }> {
     try {
-      logger.debug("Get all conversations for user:", userId);
-      // Find all conversation IDs where user is a participant
       const userParticipants = await Participant.find({
         userId,
         deletedAt: null,
       });
-      logger.debug("User participants:", userParticipants);
       const conversationIds = userParticipants.map((p) => p.conversationId);
-      logger.debug("Conversation IDs:", conversationIds);
-      logger.debug("Conversation IDs:", conversationIds);
-      // Find all conversations
       const conversations = await Conversation.find({
         _id: { $in: conversationIds },
         deletedAt: null,
       });
-      logger.debug("Conversations:", conversations);
 
       const direct: ConversationDto[] = [];
       const group: ConversationDto[] = [];

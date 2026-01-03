@@ -21,4 +21,7 @@ router.post('/requests/:requestId/accept', friendController.acceptFriendRequest.
 // POST /api/v1/friends/requests/:requestId/decline - Decline a friend request
 router.post('/requests/:requestId/decline', friendController.declineFriendRequest.bind(friendController));
 
+// GET /api/v1/friends/online-status - Get online status for all friends
+router.get('/online-status', friendController.getFriendsOnlineStatus.bind(friendController));
+
 export { router as friendRoutes };

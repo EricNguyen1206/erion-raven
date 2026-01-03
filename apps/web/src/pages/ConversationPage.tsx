@@ -19,6 +19,8 @@ const ConversationPage = () => {
     handleSendMessage,
     isConnected,
     connectionState,
+    isFetchingNextPage,
+    viewportRef,
   } = useChatPage();
 
   return (
@@ -34,31 +36,17 @@ const ConversationPage = () => {
         {...(sessionUser?.id !== undefined && { currentUserId: sessionUser.id })}
       />
 
-      {/* Connection status indicator - Nordic minimalism: subtle and calm
-      {connectionState === ConnectionState.CONNECTING && (
-        <div className="px-8 py-3 bg-accent/5 border-b border-accent/10">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-pulse" />
-            <span className="text-xs font-light text-foreground/60 tracking-wide">Connecting...</span>
-          </div>
-        </div>
-      )}
-
-      {connectionState === ConnectionState.ERROR && (
-        <div className="px-8 py-3 bg-destructive/5 border-b border-destructive/10">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-destructive/60" />
-            <span className="text-xs font-light text-destructive/80 tracking-wide">Connection issue</span>
-          </div>
-        </div>
-      )} */}
-
       {/* ScrollArea with top padding to offset the fixed header (64px) */}
-      <ScrollArea ref={containerRef} className="flex-1 min-h-0 pt-16 px-4">
+      <ScrollArea ref={containerRef} viewportRef={viewportRef} className="flex-1 min-h-0 pt-16 px-4">
         {chatsLoading ? (
           <MessagesSkeleton isGroup={true} />
         ) : (
           <div className="flex flex-col w-full">
+            {isFetchingNextPage && (
+              <div className="flex justify-center p-2">
+                <span className="text-xs text-muted-foreground animate-pulse">Loading previous messages...</span>
+              </div>
+            )}
             {sessionUser?.id &&
               chats.map((message) => (
                 <MessageBubble key={message.id} content={message.text ?? ""} variant={message.senderId === sessionUser.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />

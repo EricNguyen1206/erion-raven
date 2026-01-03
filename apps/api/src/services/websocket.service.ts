@@ -144,7 +144,6 @@ export class WebSocketService {
 
       // Check if already in room
       if (room.has(userId)) {
-        logger.debug('User already in room', { userId, conversationId });
         return;
       }
 
@@ -184,7 +183,6 @@ export class WebSocketService {
       // Cleanup empty rooms
       if (room.size === 0) {
         this.rooms.delete(conversationId);
-        logger.debug('Room cleaned up (empty)', { conversationId });
       }
 
       // Leave Socket.IO room
@@ -195,8 +193,6 @@ export class WebSocketService {
 
       // Persist to Redis
       await this.redisService.leaveConversation(userId, conversationId);
-
-      logger.info('User left room', { userId, conversationId });
     } catch (error) {
       logger.error('Leave room error:', error);
       throw error;
@@ -295,7 +291,6 @@ export class WebSocketService {
     const socket = this.getSocket(userId);
     if (socket) {
       socket.emit(event as any, payload);
-      logger.debug('Emitted to user', { userId, event });
     } else {
       logger.warn('Cannot emit to user - not connected', { userId, event });
     }

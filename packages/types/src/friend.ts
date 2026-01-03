@@ -10,6 +10,7 @@ export interface FriendDto {
   updatedAt: Date;
   user?: UserDto;
   friend?: UserDto;
+  conversationId?: string;
 }
 
 // Friend Request Types

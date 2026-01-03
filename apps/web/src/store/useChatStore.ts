@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { createJSONStorage, persist, devtools } from 'zustand/middleware';
 
 // Message type for the store
 export interface Message {
@@ -26,73 +26,75 @@ export interface ChatState {
   upsertMessageToConversation: (conversationId: string, message: Message) => void;
   addMessageToConversation: (conversationId: string, message: Message) => void;
   clearConversationMessages: (conversationId: string) => void;
-  
+
   reset: () => void;
   setActiveConversation: (conversationId: string) => void;
 }
 
 export const useChatStore = create<ChatState>()(
-  persist(
-    (set) => ({
-      conversations: {},
-      activeConversationId: null,
-      loading: false,
-      
-      upsertMessageToConversation: (conversationId: string, message: Message) =>
-        set((state) => {
-          const conversationMessages = state.conversations[conversationId] || [];
-          const existingIndex = conversationMessages.findIndex((msg) => msg.id === message.id);
-          
-          if (existingIndex !== -1) {
-            // Update existing message
-            const updatedMessages = [...conversationMessages];
-            updatedMessages[existingIndex] = message;
-            return {
-              conversations: {
-                ...state.conversations,
-                [conversationId]: updatedMessages,
-              },
-            };
-          } else {
-            // Add new message
-            return {
-              conversations: {
-                ...state.conversations,
-                [conversationId]: [...conversationMessages, message],
-              },
-            };
-          }
-        }),
-      
-      addMessageToConversation: (conversationId: string, message: Message) =>
-        set((state) => ({
-          conversations: {
-            ...state.conversations,
-            [conversationId]: [...(state.conversations[conversationId] || []), message],
-          },
-        })),
-      
-      clearConversationMessages: (conversationId: string) =>
-        set((state) => ({
-          conversations: {
-            ...state.conversations,
-            [conversationId]: [],
-          },
-        })),
-      
-      reset: () =>
-        set({ conversations: {}, activeConversationId: null, loading: false }),
-      
-      setActiveConversation: (conversationId: string) =>
-        set({ activeConversationId: conversationId }),
-    }),
-    {
-      name: 'chat-store',
-      partialize: (state) => ({
-        // INFO: Do Not store message for security reason
-        activeConversationId: state.activeConversationId,
+  devtools(
+    persist(
+      (set) => ({
+        conversations: {},
+        activeConversationId: null,
+        loading: false,
+
+        upsertMessageToConversation: (conversationId: string, message: Message) =>
+          set((state) => {
+            const conversationMessages = state.conversations[conversationId] || [];
+            const existingIndex = conversationMessages.findIndex((msg) => msg.id === message.id);
+
+            if (existingIndex !== -1) {
+              // Update existing message
+              const updatedMessages = [...conversationMessages];
+              updatedMessages[existingIndex] = message;
+              return {
+                conversations: {
+                  ...state.conversations,
+                  [conversationId]: updatedMessages,
+                },
+              };
+            } else {
+              // Add new message
+              return {
+                conversations: {
+                  ...state.conversations,
+                  [conversationId]: [...conversationMessages, message],
+                },
+              };
+            }
+          }),
+
+        addMessageToConversation: (conversationId: string, message: Message) =>
+          set((state) => ({
+            conversations: {
+              ...state.conversations,
+              [conversationId]: [...(state.conversations[conversationId] || []), message],
+            },
+          })),
+
+        clearConversationMessages: (conversationId: string) =>
+          set((state) => ({
+            conversations: {
+              ...state.conversations,
+              [conversationId]: [],
+            },
+          })),
+
+        reset: () => set({ conversations: {}, activeConversationId: null, loading: false }),
+
+        setActiveConversation: (conversationId: string) =>
+          set({ activeConversationId: conversationId }),
       }),
-      storage: createJSONStorage(() => localStorage),
-    }
+      {
+        name: 'chat-store',
+        partialize: (state) => ({
+          // INFO: Do Not store message for security reason
+          activeConversationId: state.activeConversationId,
+        }),
+        storage: createJSONStorage(() => localStorage),
+      }
+    ),
+    { name: 'chat-store' }
   )
 );

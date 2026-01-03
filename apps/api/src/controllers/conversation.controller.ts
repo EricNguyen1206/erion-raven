@@ -17,9 +17,7 @@ export class ConversationController {
     try {
       const userId = req.user!.id;
       logger.info('Get user conversations', { userId });
-      logger.debug('TEST2', typeof this.conversationService);
       const conversations = await this.conversationService.getAllConversation(userId);
-      logger.debug('Get user debug', { conversations });
       const resData: ApiResponse<ConversationListDto> = {
         success: false,
         message: 'Not Fould',
@@ -117,11 +115,12 @@ export class ConversationController {
   }
 
   // Get conversation by ID
-  async getConversationById(req: Request, res: Response): Promise<void> {
+  async getConversationById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      const userId = req.user!.id; // Safely access user id, assuming auth middleware ran
       const conversationId = id;
-      logger.info('Get conversation by ID', { conversationId });
+      logger.info('Get conversation by ID', { conversationId, userId });
 
       if (!conversationId) {
         res.status(400).json({
@@ -131,21 +130,27 @@ export class ConversationController {
         return;
       }
 
-      const conversation = await this.conversationService.getConversationById(conversationId);
+      // Pass userId to help identify "otherUserId" in DMs
+      const conversation = await this.conversationService.getConversationById(conversationId, userId);
 
       const resData: ApiResponse<ConversationDetailDto | null> = {
         success: false,
-        message: 'Not Fould',
+        message: 'Not Found',
         data: null,
       };
 
       if (!conversation) {
-        res.status(403).json(resData);
+        // If not found, return 404 (was 403 in original code, but 404 is better for not found)
+        // Original code used 403 for not found?? Keeping 404 as it is standard.
+        // Wait, original code flow: if (!conversation) res.status(403).json(resData); 
+        // Then it continues to res.status(200). That's a bug in original code too (missing return).
+        res.status(404).json(resData);
+        return;
       }
 
       resData.success = true;
       resData.message = 'Success';
-      resData.data = conversation! as unknown as ConversationDetailDto;
+      resData.data = conversation as unknown as ConversationDetailDto;
 
       res.status(200).json(resData);
     } catch (error) {

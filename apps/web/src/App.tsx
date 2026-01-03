@@ -11,7 +11,7 @@ import MessagesWebSocketProvider from '@/components/templates/MessagesWebSocketP
 // Pages
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
-import MessagesPage from '@/pages/MessagesPage'
+import HomePage from '@/pages/HomePage'
 import ConversationPage from '@/pages/ConversationPage'
 import ContactsPage from '@/pages/ContactsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
@@ -49,7 +49,7 @@ function App() {
             <Route element={<AuthGuard />}>
               <Route element={<MessagesWebSocketProvider />}>
                 <Route element={<MessagesLayout />}>
-                  <Route path="/messages" element={<MessagesPage />} />
+                  <Route path="/messages" element={<HomePage />} />
                   <Route path="/messages/:id" element={<ConversationPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                 </Route>

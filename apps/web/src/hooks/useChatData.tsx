@@ -1,19 +1,29 @@
-import { useConversationMessagesQuery } from "@/services/api/messages";
+import { useConversationMessagesInfiniteQuery } from "@/services/api/messages";
 import { Message, useChatStore } from "@/store/useChatStore";
-import { MessageDto } from "@raven/types";
+import { MessageDto, PaginatedApiResponse } from "@raven/types";
 import { useMemo } from "react";
 
 // Hook for managing chat data and messages
 export const useChatData = (conversationId: string | undefined) => {
-  const { data: chatsData, isLoading: chatsLoading } = useConversationMessagesQuery(conversationId);
+  const {
+    data: chatsData,
+    isLoading: chatsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useConversationMessagesInfiniteQuery(conversationId);
+
   const { addMessageToConversation, conversations } = useChatStore();
 
   const storeMessages = useMemo(() => (conversationId ? conversations[conversationId] || [] : []), [conversations, conversationId]);
 
   const apiMessages = useMemo(() => {
-    if (!Array.isArray(chatsData?.data)) return [];
+    if (!chatsData?.pages) return [];
 
-    return chatsData.data.map(
+    // Flatten all pages of messages
+    const allApiMessages = chatsData.pages.flatMap((page: PaginatedApiResponse<MessageDto[]>) => page.data || []);
+
+    return allApiMessages.map(
       (chat: MessageDto): Message => ({
         id: String(chat.id ?? ""),
         conversationId: String(chat.conversationId ?? conversationId ?? ""),
@@ -26,7 +36,7 @@ export const useChatData = (conversationId: string | undefined) => {
         ...(chat.url !== undefined && { url: chat.url }),
       })
     );
-  }, [chatsData?.data, conversationId]);
+  }, [chatsData?.pages, conversationId]);
 
   // Merge and deduplicate messages
   const chats: Message[] = useMemo(() => {
@@ -58,5 +68,8 @@ export const useChatData = (conversationId: string | undefined) => {
     chats,
     chatsLoading,
     addMessageToConversation,
+    loadMore: fetchNextPage,
+    hasMore: hasNextPage,
+    isFetchingNextPage,
   };
 };

@@ -1,22 +1,22 @@
-import { IsString, IsUUID, IsNotEmpty } from "class-validator";
+import { IsString, IsNotEmpty, IsMongoId } from "class-validator";
 
 export class SendFriendRequestApiRequestDto {
   @IsString()
-  @IsUUID()
+  @IsMongoId()
   @IsNotEmpty()
   toUserId!: string;
 }
 
 export class AcceptFriendRequestApiRequestDto {
   @IsString()
-  @IsUUID()
+  @IsMongoId()
   @IsNotEmpty()
   requestId!: string;
 }
 
 export class DeclineFriendRequestApiRequestDto {
   @IsString()
-  @IsUUID()
+  @IsMongoId()
   @IsNotEmpty()
   requestId!: string;
 }

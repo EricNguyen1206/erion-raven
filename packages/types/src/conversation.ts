@@ -12,6 +12,7 @@ export interface ConversationDto {
   avatar?: string;
   type: ConversationType;
   ownerId: string;
+  otherUserId?: string; // For direct messages: the ID of the other user (friend)
   createdAt: Date;
 }
 

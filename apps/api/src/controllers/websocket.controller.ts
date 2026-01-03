@@ -4,12 +4,15 @@ import { WebSocketService } from '@/services/websocket.service';
 import { ConversationService } from '@/services/conversation.service';
 import { MessageService } from '@/services/message.service';
 import { RedisService } from '@/services/redis.service';
+import { PresenceService } from '@/services/presence.service';
+import { FriendService } from '@/services/friend.service';
 import { logger } from '@/utils/logger';
 import {
   SocketEvent,
   JoinConversationPayload,
   LeaveConversationPayload,
   SendMessagePayload,
+  HeartbeatPayload,
   createErrorPayload,
 } from '@raven/types';
 import { AuthenticatedSocket } from '@/middleware/socketAuth.middleware';
@@ -22,18 +25,27 @@ import { AuthenticatedSocket } from '@/middleware/socketAuth.middleware';
  */
 export class WebSocketController {
   private wsService: WebSocketService;
+  private presenceService: PresenceService;
 
   constructor(_io: SocketIOServer) {
     // Initialize services
     const conversationService = new ConversationService();
     const messageService = new MessageService();
     const redisService = new RedisService();
+    const friendService = new FriendService();
 
     // Initialize WebSocket service
     this.wsService = new WebSocketService(
       redisService,
       messageService,
       conversationService
+    );
+
+    // Initialize Presence service
+    this.presenceService = new PresenceService(
+      redisService,
+      friendService,
+      this.wsService
     );
 
     logger.info('WebSocketController initialized');
@@ -60,6 +72,9 @@ export class WebSocketController {
     try {
       // Register connection
       await this.wsService.registerClient(userId, socket);
+
+      // Handle presence (broadcast online status to friends)
+      await this.presenceService.handleUserConnect(userId);
 
       // Setup event listeners
       this.setupEventListeners(socket);
@@ -137,6 +152,16 @@ export class WebSocketController {
         this.emitError(socket, 'SEND_MESSAGE_FAILED', 'Failed to send message', error);
       }
     });
+
+    // Heartbeat event for presence
+    socket.on(SocketEvent.HEARTBEAT, async (payload: HeartbeatPayload) => {
+      try {
+        await this.presenceService.handleHeartbeat(userId);
+        logger.debug('Heartbeat received', { userId, clientTimestamp: payload.timestamp });
+      } catch (error) {
+        logger.error('Heartbeat error', { userId, error });
+      }
+    });
   }
 
   /**
@@ -144,6 +169,8 @@ export class WebSocketController {
    */
   private async handleDisconnect(userId: string, reason: string): Promise<void> {
     try {
+      // Handle presence (broadcast offline status to friends)
+      await this.presenceService.handleUserDisconnect(userId);
       await this.wsService.unregisterClient(userId);
       logger.info('User disconnected', { userId, reason });
     } catch (error) {

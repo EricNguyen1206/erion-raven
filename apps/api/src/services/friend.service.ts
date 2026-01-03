@@ -1,8 +1,9 @@
 import { FriendRequest, FriendRequestStatus } from "@/models/FriendRequest";
 import { Friends } from "@/models/Friends";
 import { User, IUser } from "@/models/User";
-import { FriendDto, FriendRequestDto, FriendRequestsResponse } from "@raven/types";
+import { FriendDto, FriendRequestDto, FriendRequestsResponse, ConversationType } from "@raven/types";
 import { logger } from "@/utils/logger";
+import { ConversationService } from "@/services/conversation.service";
 
 export class FriendService {
   /**
@@ -115,12 +116,22 @@ export class FriendService {
 
       const savedFriendship = await friendship.save();
 
+      // Create a direct conversation between the two users
+      const conversationService = new ConversationService();
+      const conversation = await conversationService.createConversation(
+        "", // Name will be auto-generated
+        fromUser.id || fromUser._id.toString(),
+        ConversationType.DIRECT,
+        [fromUser.id || fromUser._id.toString(), toUser.id || toUser._id.toString()]
+      );
+
       // Reload with relations
       const friendshipWithRelations = await Friends.findById(savedFriendship._id)
         .populate<{ userId: IUser }>("userId")
         .populate<{ friendId: IUser }>("friendId");
 
-      return this.mapFriendToResponse(friendshipWithRelations!);
+      const response = this.mapFriendToResponse(friendshipWithRelations!);
+      return { ...response, conversationId: conversation.id };
     } catch (error: any) {
       logger.error("Error accepting friend request:", error);
       throw error;
