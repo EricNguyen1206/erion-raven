@@ -1,9 +1,9 @@
 # Database Schema
 
-> **Last Updated:** 2025-12-22  
-> **Database:** MongoDB 6.x  
-> **ODM:** Mongoose 8.x  
-> **Version:** 1.0.0
+> **Last Updated:** 2026-01-04
+> **Feature:** Database Design & Schema
+> **Components:** MongoDB, Mongoose
+> **Status:** Implemented
 
 ## 📋 Table of Contents
 
@@ -292,6 +292,8 @@ erDiagram
   userId: ObjectId,           // Reference to User
   conversationId: ObjectId,   // Reference to Conversation
   joinedAt: Date,             // When user joined (default: now)
+  unreadCount: number,        // Number of unread messages for this user in this conversation
+  lastReadAt?: Date,          // Timestamp of when the user last read the conversation
   deletedAt?: Date | null     // Soft delete (when user left)
 }
 ```
@@ -609,10 +611,10 @@ mongorestore --uri="mongodb://localhost:27017/erion-raven" /backup/erion-raven/
 
 ## 📚 Related Documentation
 
-- **[Architecture](./ARCHITECTURE.md)** - System architecture overview
-- **[API Design](./API_DESIGN.md)** - REST API endpoints
-- **[WebSocket Events](./WEBSOCKET_EVENTS.md)** - Real-time events
-- **[Development Guide](./DEVELOPMENT.md)** - Local setup
+- **[Architecture](./HIGH_LEVEL_DESIGN.md)** - System architecture overview
+
+- **[Chat Realtime Feature](./CHAT_REALTIME_FEATURE.md)** - Real-time events
+- **[Deployment Guide](./DEPLOYMENT.md)** - Local setup
 
 ---
 

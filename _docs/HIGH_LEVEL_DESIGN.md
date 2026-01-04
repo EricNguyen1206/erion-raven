@@ -1,8 +1,9 @@
 # System Architecture
 
-> **Last Updated:** 2025-12-22  
-> **Version:** 1.0.0  
-> **Maintainer:** EricNguyen1206
+> **Last Updated:** 2026-01-04
+> **Feature:** System Architecture
+> **Components:** Frontend, Backend, Database, Redis
+> **Status:** Implemented
 
 ## 📋 Table of Contents
 
@@ -153,10 +154,14 @@ erion-raven/
 │           └── message.dto.ts
 │
 ├── _docs/                      # Documentation
-│   ├── ARCHITECTURE.md         # This file
-│   ├── API_DESIGN.md          # API documentation
-│   ├── DATABASE_SCHEMA.md     # Database schema
-│   ├── WEBSOCKET_EVENTS.md    # WebSocket events
+│   ├── HIGH_LEVEL_DESIGN.md    # This file
+│   ├── DATABASE_DESIGN.md     # Database schema
+│   ├── AUTH_FEATURE.md        # Authentication features
+│   ├── RELATIONSHIP_FEATURE.md # Friend & Conversation features
+│   ├── CHAT_REALTIME_FEATURE.md # Real-time chat features
+│   ├── ONLINE_STATUS_FEATURE.md # Online status features
+│   ├── UNREAD_MESSAGE_FEATURE.md # Unread message features
+│   ├── OTHER_FEATURE.md       # User management & Util features
 │   ├── DEPLOYMENT.md          # Deployment guide
 │   ├── DEVELOPMENT.md         # Development setup
 │   └── TESTING.md             # Testing guide
@@ -231,218 +236,3 @@ erion-raven/
 | **Vitest** | Frontend testing |
 
 ---
-
-## 🔄 Data Flow
-
-### 1. Authentication Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API
-    participant Auth Service
-    participant MongoDB
-    participant Redis
-    
-    Client->>API: POST /api/v1/auth/signin
-    API->>Auth Service: validateCredentials(email, password)
-    Auth Service->>MongoDB: findUser(email)
-    MongoDB-->>Auth Service: user data
-    Auth Service->>Auth Service: bcrypt.compare(password)
-    Auth Service->>Auth Service: generateTokens()
-    Auth Service->>Redis: storeRefreshToken(userId, token)
-    Auth Service-->>API: { accessToken, refreshToken }
-    API-->>Client: Set httpOnly cookies + user data
-```
-
-### 2. Real-time Messaging Flow
-
-```mermaid
-sequenceDiagram
-    participant Client A
-    participant Socket.IO
-    participant WebSocket Service
-    participant Message Service
-    participant MongoDB
-    participant Redis
-    participant Client B
-    
-    Client A->>Socket.IO: emit('send_message', data)
-    Socket.IO->>WebSocket Service: handleMessage(socket, data)
-    WebSocket Service->>Message Service: createMessage(data)
-    Message Service->>MongoDB: save message
-    MongoDB-->>Message Service: saved message
-    Message Service-->>WebSocket Service: message object
-    WebSocket Service->>Redis: publish to channel
-    WebSocket Service->>Socket.IO: emit to room
-    Socket.IO-->>Client A: 'new_message' event
-    Socket.IO-->>Client B: 'new_message' event
-```
-
-### 3. Friend Request Flow
-
-```mermaid
-sequenceDiagram
-    participant User A
-    participant API
-    participant Friend Service
-    participant MongoDB
-    participant WebSocket
-    participant User B
-    
-    User A->>API: POST /api/v1/friends/requests
-    API->>Friend Service: sendFriendRequest(toUserId)
-    Friend Service->>MongoDB: Check existing friendship
-    Friend Service->>MongoDB: Create FriendRequest
-    MongoDB-->>Friend Service: friendRequest
-    Friend Service->>WebSocket: Notify User B
-    WebSocket-->>User B: 'friend_request_received'
-    Friend Service-->>API: Success response
-    API-->>User A: { success: true, data: friendRequest }
-```
-
----
-
-## 🔐 Security Architecture
-
-### Authentication & Authorization
-
-```mermaid
-graph LR
-    A[Client Request] --> B{Has Token?}
-    B -->|No| C[Return 401]
-    B -->|Yes| D[Verify JWT]
-    D -->|Invalid| C
-    D -->|Valid| E{Check Permissions}
-    E -->|Denied| F[Return 403]
-    E -->|Allowed| G[Process Request]
-```
-
-### Security Layers
-
-1. **Transport Security**
-   - HTTPS/TLS encryption
-   - Secure WebSocket (WSS)
-   - CORS configuration
-
-2. **Authentication**
-   - JWT access tokens (15min expiry)
-   - Refresh tokens (7 days expiry)
-   - httpOnly cookies
-   - Token rotation
-
-3. **Authorization**
-   - Role-based access control
-   - Resource ownership validation
-   - Conversation membership checks
-
-4. **Input Validation**
-   - Zod schema validation
-   - Request body sanitization
-   - SQL injection prevention (via Mongoose)
-   - XSS protection
-
-5. **Rate Limiting**
-   - Redis-based rate limiter
-   - Auth endpoints: 5 req/15min
-   - General endpoints: 100 req/15min
-   - WebSocket connections: 1/user
-
-6. **Password Security**
-   - Bcrypt hashing (10 rounds)
-   - Minimum 8 characters
-   - Password strength validation
-
----
-
-## 📊 Scalability Considerations
-
-### Horizontal Scaling
-
-```mermaid
-graph TB
-    LB[Load Balancer]
-    
-    subgraph "API Servers"
-        API1[API Server 1]
-        API2[API Server 2]
-        API3[API Server 3]
-    end
-    
-    subgraph "WebSocket Servers"
-        WS1[WS Server 1]
-        WS2[WS Server 2]
-    end
-    
-    subgraph "Data Layer"
-        REDIS[Redis Cluster<br/>Pub/Sub]
-        MONGO[MongoDB Replica Set]
-    end
-    
-    LB --> API1
-    LB --> API2
-    LB --> API3
-    
-    LB --> WS1
-    LB --> WS2
-    
-    API1 --> MONGO
-    API2 --> MONGO
-    API3 --> MONGO
-    
-    WS1 --> REDIS
-    WS2 --> REDIS
-    
-    API1 --> REDIS
-    API2 --> REDIS
-    API3 --> REDIS
-```
-
-### Performance Optimizations
-
-1. **Caching Strategy**
-   - User sessions in Redis
-   - Conversation metadata caching
-   - Rate limit counters in Redis
-
-2. **Database Optimization**
-   - MongoDB indexes on frequently queried fields
-   - Pagination for message lists
-   - Aggregation pipelines for complex queries
-
-3. **WebSocket Optimization**
-   - Redis Pub/Sub for multi-server WebSocket
-   - Room-based message broadcasting
-   - Connection pooling
-
-4. **API Optimization**
-   - Response compression (gzip)
-   - Request batching where possible
-   - Lazy loading for large datasets
-
----
-
-## 📚 Related Documentation
-
-- **[API Design](./API_DESIGN.md)** - REST API endpoints documentation
-- **[Database Schema](./DATABASE_SCHEMA.md)** - MongoDB collections and relationships
-- **[WebSocket Events](./WEBSOCKET_EVENTS.md)** - Real-time event specifications
-- **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment instructions
-- **[Development Setup](./DEVELOPMENT.md)** - Local development environment
-- **[Testing Guide](./TESTING.md)** - Testing strategies and examples
-
----
-
-## 🔄 Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-12-22 | Initial architecture documentation |
-
----
-
-## 📞 Support
-
-For questions or issues:
-- **GitHub Issues:** [erion-raven/issues](https://github.com/EricNguyen1206/erion-raven/issues)
-- **Email:** eric.nguyen@example.com
