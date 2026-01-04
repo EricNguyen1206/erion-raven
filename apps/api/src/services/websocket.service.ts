@@ -2,6 +2,7 @@ import { Socket } from 'socket.io';
 import { RedisService } from './redis.service';
 import { MessageService } from './message.service';
 import { ConversationService } from './conversation.service';
+import { Participant } from '@/models/Participant';
 import {
   SocketEvent,
   MessageDto,
@@ -348,13 +349,42 @@ export class WebSocketService {
         savedMessage.createdAt
       );
 
-      // Broadcast to all conversation members (including sender for confirmation)
-      this.broadcastToRoom(conversationId, SocketEvent.NEW_MESSAGE, messageDto);
+      // Increment unread count for all participants except sender
+      await Participant.updateMany(
+        {
+          conversationId,
+          userId: { $ne: senderId },
+          deletedAt: null
+        },
+        {
+          $inc: { unreadCount: 1 }
+        }
+      );
 
-      logger.info('Message sent', {
+      // Get all participants to notify (even if not currently in the room)
+      const participants = await Participant.find({
+        conversationId,
+        deletedAt: null
+      }).select('userId');
+
+      // Broadcast to all online participants
+      for (const participant of participants) {
+        const userId = participant.userId.toString();
+
+        // Skip emitting back to sender in this loop if handled elsewhere, 
+        // OR emit to everyone including sender for consistency (sender usually handles optimistic UI).
+        // Let's emit to everyone online so they get the event.
+
+        if (this.isOnline(userId)) {
+          this.emitToUser(userId, SocketEvent.NEW_MESSAGE, messageDto);
+        }
+      }
+
+      logger.info('Message sent and broadcasted', {
         conversationId,
         senderId,
         messageId: savedMessage.id,
+        recipientCount: participants.length
       });
     } catch (error) {
       logger.error('Handle message error:', error);

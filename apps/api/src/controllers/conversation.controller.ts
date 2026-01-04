@@ -433,4 +433,33 @@ export class ConversationController {
       }
     }
   }
+  // Mark conversation as read
+  markAsRead = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      const conversationId = id;
+
+      if (!conversationId) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid conversation ID',
+        });
+        return;
+      }
+
+      await this.conversationService.markConversationAsRead(userId, conversationId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Conversation marked as read'
+      });
+    } catch (error) {
+      logger.error('Mark conversation as read error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  };
 }

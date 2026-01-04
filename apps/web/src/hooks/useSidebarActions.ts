@@ -35,6 +35,8 @@ const transformConversationData = (conversations: any[], type: "group" | "direct
         otherUserId: String(ch.otherUserId ?? ""),
         type: type === "group" ? ConversationType.GROUP : ConversationType.DIRECT,
         avatar: ch.avatar || "",
+        unreadCount: ch.unreadCount ?? 0,
+        lastReadAt: ch.lastReadAt ? new Date(ch.lastReadAt) : undefined,
       }) as ConversationDto
   );
 };

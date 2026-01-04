@@ -1,9 +1,11 @@
 import { ConversationDto } from '@raven/types';
+import { useConversationStore } from '@/store/useConversationStore';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Link } from 'react-router-dom';
 import { SidebarMenuItem } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 import OnlineStatusBadge from './OnlineStatusBadge';
+import { Badge } from '../ui/badge';
 
 type DirectMessageCardProps = {
   convo: ConversationDto;
@@ -11,6 +13,7 @@ type DirectMessageCardProps = {
 };
 
 const DirectMessageCard = ({ convo, isActive }: DirectMessageCardProps) => {
+  const unreadCount = useConversationStore((state) => state.unreadCounts[convo.id] ?? 0);
   const displayName = convo.name.split('@')[0];
   // For online status, use otherUserId (the friend's ID)
   // We removed the fallback to ownerId because it caused the badge to show the owner's status (incorrectly)
@@ -40,8 +43,13 @@ const DirectMessageCard = ({ convo, isActive }: DirectMessageCardProps) => {
           {friendUserId && <OnlineStatusBadge userId={friendUserId} size="sm" />}
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-center justify-between">
           <h4 className="font-light text-sidebar-foreground text-sm truncate">{displayName}</h4>
+          {unreadCount > 0 && (
+            <Badge variant="secondary" className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs">
+              {unreadCount}
+            </Badge>
+          )}
         </div>
       </Link>
     </SidebarMenuItem>

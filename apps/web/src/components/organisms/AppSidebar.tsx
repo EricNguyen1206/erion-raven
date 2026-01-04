@@ -4,6 +4,7 @@ import { useSidebarActions } from "@/hooks/useSidebarActions";
 import { SidebarConversations } from "../molecules/SidebarConversations";
 import SidebarDirectMessages from "../molecules/SidebarDirectMessages";
 import NavUser from "../molecules/NavUser";
+import { useGlobalWebSocket } from "@/hooks/useGlobalWebSocket";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +26,9 @@ export function AppSidebar() {
     filteredDirectMessages,
     isConversationsLoading,
   } = useSidebarActions();
+
+  // Mount global WebSocket listener for unread counts
+  useGlobalWebSocket();
 
   return (
     <Sidebar collapsible="icon" className="border-none bg-sidebar">

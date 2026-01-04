@@ -9,6 +9,8 @@ import { useMessageSending } from "./useMessageSending";
 import { useChatFormState } from "./useChatFormState";
 import { useScrollBehavior } from "./useScrollBehavior";
 import { useConversationDetails } from "./useConversationDetails";
+import { useMarkConversationAsReadMutation } from "@/services/api/conversations";
+import { useConversationStore } from "@/store/useConversationStore";
 
 // Main hook that combines all other hooks
 export const useChatPage = () => {
@@ -36,6 +38,20 @@ export const useChatPage = () => {
 
   // Track the last message ID to determine when to scroll to bottom
   const lastMessageIdRef = useRef<string | null>(null);
+
+  const { mutate: markAsReadApi } = useMarkConversationAsReadMutation();
+  const { markAsRead } = useConversationStore();
+
+  // Mark conversation as read when entering
+  useEffect(() => {
+    if (currentConversation?.id) {
+      // We can optimistically mark as read even if we don't know the exact unread count here, 
+      // or we can check unreadCount from the store if we want to be strict.
+      // The optimized approach is to just call it.
+      markAsRead(currentConversation.id);
+      markAsReadApi(currentConversation.id);
+    }
+  }, [currentConversation?.id, markAsRead, markAsReadApi]);
 
   // Scroll effects
   useEffect(() => {

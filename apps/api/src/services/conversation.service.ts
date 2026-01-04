@@ -1,6 +1,6 @@
 import { Conversation, IConversation } from "@/models/Conversation";
 import { User, IUser } from "@/models/User";
-import { Participant } from "@/models/Participant";
+import { Participant, IParticipant } from "@/models/Participant";
 import { UserService } from "@/services/user.service";
 import { ConversationDetailDto, ConversationDto, ConversationType, UserDto } from "@raven/types";
 import { logger } from "@/utils/logger";
@@ -16,7 +16,8 @@ export class ConversationService {
   // Helper to build direct conversation response
   private async buildConversationDto(
     conversation: IConversation,
-    userId: string
+    userId: string,
+    participant?: IParticipant
   ): Promise<ConversationDto> {
     try {
       const friends = await this.userService.getFriendsByConversationId(conversation.id, userId);
@@ -53,6 +54,8 @@ export class ConversationService {
         ...(otherUserId && { otherUserId }),
         type: conversation.type,
         createdAt: conversation.createdAt,
+        unreadCount: participant?.unreadCount ?? 0,
+        ...(participant?.lastReadAt && { lastReadAt: participant.lastReadAt }),
       };
     } catch (error) {
       logger.error("Build direct conversation response error:", error);
@@ -161,9 +164,13 @@ export class ConversationService {
       const direct: ConversationDto[] = [];
       const group: ConversationDto[] = [];
 
+      const participantMap = new Map(userParticipants.map(p => [p.conversationId.toString(), p]));
+
       for (const conversation of conversations) {
+        const participant = participantMap.get(conversation.id);
+
         if (conversation.type === ConversationType.DIRECT) {
-          const directResponse = await this.buildConversationDto(conversation, userId);
+          const directResponse = await this.buildConversationDto(conversation, userId, participant);
           direct.push(directResponse);
         } else {
           group.push({
@@ -173,6 +180,8 @@ export class ConversationService {
             ownerId: conversation.ownerId.toString(),
             type: conversation.type,
             createdAt: conversation.createdAt,
+            unreadCount: participant?.unreadCount ?? 0,
+            ...(participant?.lastReadAt && { lastReadAt: participant.lastReadAt }),
           });
         }
       }
@@ -383,4 +392,20 @@ export class ConversationService {
     // Soft delete participant
     await Participant.updateOne({ conversationId, userId }, { deletedAt: new Date() });
   }
+
+  async markConversationAsRead(userId: string, conversationId: string): Promise<void> {
+    try {
+      await Participant.updateOne(
+        { conversationId, userId },
+        {
+          unreadCount: 0,
+          lastReadAt: new Date(),
+        }
+      );
+    } catch (error) {
+      logger.error('Mark conversation as read error:', error);
+      throw error;
+    }
+  }
 }
+

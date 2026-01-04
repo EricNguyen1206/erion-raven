@@ -173,3 +173,19 @@ export const useRemoveConversationMemberMutation = (
     ...options,
   });
 };
+
+export const markConversationAsReadRequest = async (id: string): Promise<ApiMessageResponse> => {
+  const { data } = await apiClient.post<ApiMessageResponse>(`/conversations/${id}/read`, {});
+  return data;
+};
+
+export const useMarkConversationAsReadMutation = (
+  options?: UseMutationOptions<ApiMessageResponse, AxiosError<ApiErrorResponse>, string>
+) => {
+  return useMutation<ApiMessageResponse, AxiosError<ApiErrorResponse>, string>({
+    mutationKey: ['conversations', 'markAsRead'],
+    mutationFn: markConversationAsReadRequest,
+    ...options,
+  });
+};
+

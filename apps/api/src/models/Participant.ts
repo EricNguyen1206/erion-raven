@@ -5,6 +5,8 @@ export interface IParticipant extends Document {
   userId: mongoose.Types.ObjectId;
   conversationId: mongoose.Types.ObjectId;
   joinedAt: Date;
+  unreadCount: number;
+  lastReadAt: Date;
   deletedAt?: Date | null;
   id: string;
 }
@@ -14,6 +16,8 @@ const ParticipantSchema: Schema<IParticipant> = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     conversationId: { type: Schema.Types.ObjectId, ref: "Conversation", required: true },
     joinedAt: { type: Date, default: Date.now },
+    unreadCount: { type: Number, default: 0 },
+    lastReadAt: { type: Date, default: Date.now },
     deletedAt: { type: Date, default: null },
   },
   {

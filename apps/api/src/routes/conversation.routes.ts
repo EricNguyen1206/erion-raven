@@ -42,4 +42,9 @@ router.delete(
   conversationController.removeUserFromConversation.bind(conversationController)
 );
 
+
+// Mark conversation as read
+router.post('/:id/read', conversationController.markAsRead);
+
+
 export { router as conversationRoutes };

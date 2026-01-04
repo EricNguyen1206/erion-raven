@@ -14,6 +14,8 @@ export interface ConversationDto {
   ownerId: string;
   otherUserId?: string; // For direct messages: the ID of the other user (friend)
   createdAt: Date;
+  unreadCount?: number;
+  lastReadAt?: Date;
 }
 
 export interface ConversationDetailDto extends ConversationDto {

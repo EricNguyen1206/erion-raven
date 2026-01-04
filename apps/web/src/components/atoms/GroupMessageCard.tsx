@@ -1,8 +1,10 @@
 import { ConversationDto } from '@raven/types';
+import { useConversationStore } from '@/store/useConversationStore';
 import { Hash } from 'lucide-react';
 import { SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
 type GroupMessageCardProps = {
   convo: ConversationDto;
@@ -10,6 +12,8 @@ type GroupMessageCardProps = {
 };
 
 const GroupMessageCard = ({ convo, isActive }: GroupMessageCardProps) => {
+  const unreadCount = useConversationStore((state) => state.unreadCounts[convo.id] ?? 0);
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -22,7 +26,12 @@ const GroupMessageCard = ({ convo, isActive }: GroupMessageCardProps) => {
       >
         <Link to={`/messages/${convo.id}`} className="flex items-center gap-3">
           <Hash className="w-[16px] h-[16px] opacity-50 font-light text-sidebar-foreground" />
-          <span className="text-sm font-light text-sidebar-foreground">{convo.name}</span>
+          <span className="text-sm font-light text-sidebar-foreground flex-1 truncate">{convo.name}</span>
+          {unreadCount > 0 && (
+            <Badge variant="secondary" className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs">
+              {unreadCount}
+            </Badge>
+          )}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
