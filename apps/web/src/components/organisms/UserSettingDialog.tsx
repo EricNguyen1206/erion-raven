@@ -10,7 +10,8 @@ import { toast } from "react-toastify";
 import { User } from "lucide-react";
 
 // Helpers
-import { handleFileUpload } from "@/lib/supabase";
+// Helpers
+import { useUpload } from "@/hooks/useUpload";
 
 // UI components
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +46,7 @@ const UserSettingDialog: React.FC<ParentComponentProps> = ({ children, open, onO
 
   // API hooks
   const updateProfileMutation = useUpdateProfileMutation();
+  const { uploadFile } = useUpload();
   // Reset form
 
   const handleImageSelection = (event: any) => {
@@ -71,17 +73,16 @@ const UserSettingDialog: React.FC<ParentComponentProps> = ({ children, open, onO
     if (image !== null) {
       setLoading(true);
 
-      const res = await handleFileUpload("uploads", "public", image);
-      const { fullPath }: any = res;
+      const res = await uploadFile(image, "avatars");
 
       if (res === null) {
-        toast.error("Upload image failed");
+        // toast error already handled in hook
         setLoading(false);
         return;
       }
 
       // Create avatar url
-      avatar = `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/storage/v1/object/public/${fullPath}`;
+      avatar = res.publicUrl;
       updateData.avatar = avatar;
       checkEdit = true;
     }
@@ -103,7 +104,7 @@ const UserSettingDialog: React.FC<ParentComponentProps> = ({ children, open, onO
       return;
     }
 
-    setLoading(true);
+    if (!loading) setLoading(true); // Ensure loading is true if not set by upload logic
 
     try {
       await updateProfileMutation.mutateAsync(updateData);
@@ -120,7 +121,7 @@ const UserSettingDialog: React.FC<ParentComponentProps> = ({ children, open, onO
 
   // Render
   return (
-    <Dialog open={open ?? false} onOpenChange={onOpenChange ?? (() => {})}>
+    <Dialog open={open ?? false} onOpenChange={onOpenChange ?? (() => { })}>
       <DialogTrigger asChild>
         <div>{children}</div>
       </DialogTrigger>

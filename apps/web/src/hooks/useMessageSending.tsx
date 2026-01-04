@@ -15,8 +15,8 @@ export const useMessageSending = (
 
   // Handle sending messages with optimistic update
   const handleSendMessage = useCallback(
-    async (message: string) => {
-      if (sessionUser?.id && message !== "" && conversationId && isConnected()) {
+    async (message: string, url?: string, fileName?: string) => {
+      if (sessionUser?.id && (message !== "" || url) && conversationId && isConnected()) {
         try {
           // 1. Optimistic update - show message immediately
           const tempId = `temp-${Date.now()}`;
@@ -27,12 +27,14 @@ export const useMessageSending = (
             senderName: sessionUser.username,
             senderAvatar: sessionUser.avatar,
             text: message,
+            url,
+            fileName,
             createdAt: new Date().toISOString(),
           };
           addMessageToConversation(conversationId, optimisticMessage);
 
           // 2. Send message via WebSocket (server will broadcast it back)
-          sendMessage(conversationId, message);
+          sendMessage(conversationId, message, url, fileName);
           setFormData({ message: "" });
           scrollToBottom();
         } catch (error) {

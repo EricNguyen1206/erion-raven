@@ -8,6 +8,7 @@ interface MessageBubbleProps {
   avatarUrl?: string
   avatarFallback?: string
   className?: string
+  image?: string
 }
 
 export default function MessageBubble({
@@ -17,6 +18,7 @@ export default function MessageBubble({
   avatarUrl,
   avatarFallback = "U",
   className,
+  image,
 }: MessageBubbleProps) {
   const isSent = variant === "sent"
 
@@ -36,7 +38,7 @@ export default function MessageBubble({
 
       <div
         className={cn(
-          "relative max-w-[65%] rounded-2xl px-4 py-2 text-sm font-light leading-relaxed transition-all duration-200 border-none shadow-none",
+          "relative max-w-[65%] rounded-2xl px-4 py-2 text-sm font-light leading-relaxed transition-all duration-200 border-none shadow-none flex flex-col gap-2",
           isSent ? "rounded-br-md" : "rounded-bl-md",
         )}
         style={
@@ -53,7 +55,12 @@ export default function MessageBubble({
             }
         }
       >
-        <p className="leading-relaxed tracking-wide">{content}</p>
+        {image && (
+          <div className="rounded-lg overflow-hidden mb-1">
+            <img src={image} alt="Attachment" className="max-w-full h-auto object-cover max-h-64" loading="lazy" />
+          </div>
+        )}
+        {content && <p className="leading-relaxed tracking-wide">{content}</p>}
         {timestamp && <span className="mt-1 block text-[10px] opacity-50 text-right font-light tracking-wider">{timestamp}</span>}
       </div>
     </div>

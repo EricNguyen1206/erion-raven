@@ -5,6 +5,7 @@ import { userRoutes } from './user.routes';
 import { conversationRoutes } from './conversation.routes';
 import { friendRoutes } from './friend.routes';
 import messageRoutes from './message.routes';
+import uploadRoutes from './upload.route';
 import websocketRoutes, { initializeWebSocketRoutes } from './websocket.routes';
 import { generalRateLimit, authRateLimit } from '@/middleware/rateLimit.middleware';
 import { authenticateToken } from '@/middleware/auth.middleware';
@@ -24,6 +25,7 @@ export const setupRoutes = (app: Application, io: SocketIOServer): void => {
   app.use(`${apiPrefix}/conversations`, generalRateLimit, authenticateToken, conversationRoutes);
   app.use(`${apiPrefix}/friends`, generalRateLimit, authenticateToken, friendRoutes);
   app.use(`${apiPrefix}/messages`, generalRateLimit, authenticateToken, messageRoutes);
+  app.use(`${apiPrefix}/upload`, generalRateLimit, authenticateToken, uploadRoutes);
 
   // WebSocket routes
   app.use(`${apiPrefix}/ws`, websocketRoutes);

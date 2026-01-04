@@ -49,7 +49,7 @@ const ConversationPage = () => {
             )}
             {sessionUser?.id &&
               chats.map((message) => (
-                <MessageBubble key={message.id} content={message.text ?? ""} variant={message.senderId === sessionUser.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />
+                <MessageBubble key={message.id} content={message.text ?? ""} image={message.url ?? undefined} variant={message.senderId === sessionUser.id ? "sent" : "received"} timestamp={message.createdAt} avatarUrl={message.senderAvatar ?? ""} avatarFallback={message.senderName?.[0]?.toUpperCase() ?? "A"} />
               ))}
             <div ref={mainRef} className="h-0" />
           </div>
