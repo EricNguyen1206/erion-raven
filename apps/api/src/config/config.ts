@@ -6,8 +6,8 @@ dotenv.config();
 export const config = {
   app: {
     env: process.env["NODE_ENV"] || "development",
-    port: parseInt(process.env["PORT"] || "3000", 10),
-    host: process.env["HOST"] || "localhost",
+    port: parseInt(process.env["PORT"] || "10000", 10),
+    host: process.env["HOST"] || (process.env["NODE_ENV"] === "production" ? "0.0.0.0" : "localhost"),
   },
   database: {
     uri: process.env["MONGODB_URI"] || "mongodb://localhost:27017/notify_chat",
