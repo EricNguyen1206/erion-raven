@@ -21,7 +21,13 @@ export const config = {
     db: parseInt(process.env["REDIS_DB"] || "0", 10),
   },
   jwt: {
-    secret: process.env["JWT_SECRET"] || "your-super-secure-jwt-secret-key",
+    secret: (() => {
+      const secret = process.env["JWT_SECRET"];
+      if (!secret && process.env["NODE_ENV"] === "production") {
+        throw new Error("JWT_SECRET is not defined in environment variables");
+      }
+      return secret || "dev-secret-do-not-use-in-prod";
+    })(),
     accessExpire: process.env["JWT_ACCESS_EXPIRE"] || "15m",
     refreshExpire: process.env["JWT_REFRESH_EXPIRE"] || "30d",
   },
@@ -37,5 +43,13 @@ export const config = {
   },
   logging: {
     level: "debug"// process.env["LOG_LEVEL"] || "debug",
+  },
+  cookie: {
+    httpOnly: true,
+    secure: process.env["NODE_ENV"] === "production",
+    // SameSite=None is required for cross-site cookies (Render backend + Vercel frontend)
+    // In development (localhost), 'lax' is fine.
+    sameSite: (process.env["NODE_ENV"] === "production" ? "none" : "lax") as "none" | "lax" | "strict",
+    path: "/",
   },
 };

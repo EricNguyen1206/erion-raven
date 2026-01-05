@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, PutBucketCorsCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 class S3Service {
@@ -101,34 +101,7 @@ class S3Service {
     }
   }
 
-  /**
-   * Configures CORS for the bucket to allow uploads from the browser
-   * Useful for R2 or initial S3 setup
-   */
-  async configureCors(): Promise<void> {
-    const command = new PutBucketCorsCommand({
-      Bucket: this.bucket,
-      CORSConfiguration: {
-        CORSRules: [
-          {
-            AllowedHeaders: ["*"],
-            AllowedMethods: ["PUT", "POST", "GET", "HEAD"], // PUT is key for presigned uploads
-            AllowedOrigins: ["*"], // For development/R2. In prod, lock this down to your domain.
-            ExposeHeaders: ["ETag"],
-            MaxAgeSeconds: 3600,
-          },
-        ],
-      },
-    });
 
-    try {
-      await this.s3Client.send(command);
-      console.log(`CORS configured successfully for bucket ${this.bucket}`);
-    } catch (error) {
-      console.error("Error configuring CORS:", error);
-      throw new Error("Failed to configure CORS");
-    }
-  }
 }
 
 export default new S3Service();

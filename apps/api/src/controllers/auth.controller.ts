@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthService } from '@/services/auth.service';
 import { AuthenticatedRequest } from '@/middleware/auth.middleware';
 import { logger } from '@/utils/logger';
+import { config } from '@/config/config';
 
 export class AuthController {
   private authService: AuthService;
@@ -42,13 +43,10 @@ export class AuthController {
       const result = await this.authService.signin(req.body);
 
       // Set access token as httpOnly cookie
-      const isProduction = process.env['NODE_ENV'] === 'production';
+      // Set access token as httpOnly cookie
       const cookieOptions = {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax' as const,
+        ...config.cookie,
         maxAge: 15 * 60 * 1000, // 15 minutes (matches JWT access token expiry)
-        path: '/',
       };
 
       res.cookie('accessToken', result.accessToken, cookieOptions);
@@ -92,13 +90,10 @@ export class AuthController {
       const result = await this.authService.refreshToken(refreshToken);
 
       // Set new access token as httpOnly cookie
-      const isProduction = process.env['NODE_ENV'] === 'production';
+      // Set new access token as httpOnly cookie
       res.cookie('accessToken', result.accessToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax' as const,
+        ...config.cookie,
         maxAge: 15 * 60 * 1000, // 15 minutes
-        path: '/',
       });
 
       res.status(200).json({
@@ -143,20 +138,11 @@ export class AuthController {
       await this.authService.signout(refreshToken, userId);
 
       // Clear access token cookie
-      res.clearCookie('accessToken', {
-        httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
+      // Clear access token cookie
+      res.clearCookie('accessToken', config.cookie);
 
       // Clear refresh token cookie
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
+      res.clearCookie('refreshToken', config.cookie);
 
       res.status(200).json({
         success: true,

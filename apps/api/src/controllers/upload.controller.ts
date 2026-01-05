@@ -5,16 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 class UploadController {
   constructor() {
     this.getPresignedUrl = this.getPresignedUrl.bind(this);
-    this.configureCors = this.configureCors.bind(this);
-  }
-
-  public async configureCors(_req: Request, res: Response) {
-    try {
-      await S3Service.configureCors();
-      return res.status(200).json({ message: "CORS configured successfully" });
-    } catch (error) {
-      return res.status(500).json({ message: "Failed to configure CORS" });
-    }
   }
 
   public async getPresignedUrl(req: Request, res: Response) {
@@ -23,6 +13,21 @@ class UploadController {
 
       if (!filename || !contentType) {
         return res.status(400).json({ message: "Filename and content type are required" });
+      }
+
+      // Allowed content types
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+        "video/mp4",
+        "video/webm"
+      ];
+
+      if (!allowedTypes.includes(contentType)) {
+        return res.status(400).json({ message: "Invalid content type" });
       }
 
       const fileExtension = filename.split('.').pop();
