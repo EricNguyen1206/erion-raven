@@ -1,8 +1,8 @@
 {
-  "name": "notify-monorepo",
+  "name": "erion-raven",
   "version": "1.0.0",
   "private": true,
-  "description": "Notify Chat Application - Monorepo",
+  "description": "Chat Application - Monorepo",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -15,9 +15,9 @@
   "keywords": [
     "monorepo",
     "chat",
-    "notify"
+    "erion"
   ],
-  "author": "Notify Team",
+  "author": "Erion Team",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0",

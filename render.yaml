@@ -1,14 +1,16 @@
-version: 0.1
-
-build:
-  commands:
-    - cd ../.. && pnpm install
-    - cd ../.. && pnpm --filter @raven/api build
-
-start:
-  command: cd ../.. && pnpm --filter @raven/api start
-
-env:
-  - key: NODE_ENV
-    value: production
+services:
+  - type: web
+    name: erion-raven-api
+    env: node
+    plan: free
+    buildCommand: pnpm install && pnpm turbo build --filter=@raven/api
+    startCommand: pnpm --filter @raven/api start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+    autoDeploy: false
 
