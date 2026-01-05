@@ -2,7 +2,7 @@
   "framework": "vite",
   "buildCommand": "pnpm turbo build --filter=@raven/web",
   "outputDirectory": "apps/web/dist",
-  "installCommand": "pnpm install",
+  "installCommand": "npm install -g pnpm@8 && pnpm install",
   "rewrites": [
     {
       "source": "/(.*)",
