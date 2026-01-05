@@ -1,8 +1,12 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @raven/web build",
-  "outputDirectory": "apps/web/.next",
-  "installCommand": "cd ../.. && pnpm install",
-  "framework": "nextjs",
-  "rootDirectory": "apps/web"
+  "framework": "vite",
+  "buildCommand": "pnpm turbo build --filter=@raven/web",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "pnpm install",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
-
