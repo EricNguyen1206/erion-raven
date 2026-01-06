@@ -86,6 +86,9 @@ export class UserService {
       }
 
       // Verify current password
+      if (!user.password) {
+        throw new Error("Invalid credentials");
+      }
       const isCurrentPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
       if (!isCurrentPasswordValid) {
         throw new Error("Current password is incorrect");
