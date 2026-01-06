@@ -158,4 +158,47 @@ export class AuthController {
       });
     }
   };
+
+  public googleSignin = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { credential } = req.body;
+
+      if (!credential) {
+        res.status(400).json({
+          code: 400,
+          message: 'Bad Request',
+          details: 'Google credential token is required',
+        });
+        return;
+      }
+
+      const result = await this.authService.googleSignin(credential);
+
+      // Set cookie options (reused from signin)
+      const cookieOptions = {
+        ...config.cookie,
+        maxAge: 15 * 60 * 1000,
+      };
+
+      res.cookie('accessToken', result.accessToken, cookieOptions);
+
+      res.cookie('refreshToken', result.refreshToken, {
+        ...cookieOptions,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+
+      res.status(200).json({
+        success: true,
+        data: result.user,
+      });
+
+    } catch (error: any) {
+      logger.error('Google signin failed:', error);
+      res.status(401).json({
+        code: 401,
+        message: 'Unauthorized',
+        details: error.message || 'Google authentication failed',
+      });
+    }
+  };
 }

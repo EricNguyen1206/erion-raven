@@ -1,3 +1,5 @@
+import { GoogleLogin } from '@react-oauth/google';
+import { authService } from '@/services/authService';
 import { useSigninMutation } from "@/services/api/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -141,6 +143,42 @@ const LoginForm = () => {
               "Sign in"
             )}
           </Button>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border/30" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground/60">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                if (credentialResponse.credential) {
+                  try {
+                    await authService.googleSignIn(credentialResponse.credential);
+                    await getProfile();
+                    queryClient.invalidateQueries({ queryKey: ["user", "current"] });
+                    toast.success("Sign in successfully");
+                    navigate("/");
+                  } catch (error) {
+                    console.error('Google Sign In Failed', error);
+                    toast.error("Google Sign In Failed");
+                  }
+                }
+              }}
+              onError={() => {
+                toast.error("Google Sign In Failed");
+              }}
+              useOneTap
+              theme="filled_black"
+              shape="pill"
+            />
+          </div>
         </form>
       </CardContent>
 

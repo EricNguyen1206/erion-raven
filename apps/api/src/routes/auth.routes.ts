@@ -13,6 +13,9 @@ router.post('/signup', validateDto(SignupRequestDto), authController.signup.bind
 // POST /api/v1/auth/signin
 router.post('/signin', validateDto(SigninRequestDto), authController.signin.bind(authController));
 
+// POST /api/v1/auth/google
+router.post('/google', authController.googleSignin.bind(authController));
+
 // POST /api/v1/auth/refresh
 router.post('/refresh', authController.refresh.bind(authController));
 
