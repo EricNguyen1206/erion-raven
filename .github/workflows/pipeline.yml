@@ -41,7 +41,7 @@ jobs:
         run: pnpm --filter @raven/shared build
 
       - name: Upload shared packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: shared-packages
           path: |
@@ -166,7 +166,9 @@ jobs:
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.VERCEL_TOKEN != ''
+        env:
+          VERCEL_TOKEN_SET: ${{ secrets.VERCEL_TOKEN != '' }}
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.VERCEL_TOKEN_SET == 'true'
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
@@ -204,7 +206,9 @@ jobs:
           pnpm --filter @raven/shared build
 
       - name: Deploy to Render
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        env:
+          HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.HOOK_URL != ''
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
 

@@ -93,14 +93,14 @@ jobs:
         run: pnpm --filter @raven/api build
 
       - name: Upload frontend build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: apps/web/.next
           retention-days: 1
 
       - name: Upload backend build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-build
           path: apps/api/dist

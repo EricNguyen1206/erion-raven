@@ -35,6 +35,7 @@ jobs:
       - name: Build shared packages
         run: |
           pnpm --filter @raven/types build
+          pnpm --filter @raven/validators build
           pnpm --filter @raven/shared build
 
       - name: Build frontend
@@ -42,6 +43,9 @@ jobs:
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
+        env:
+          VERCEL_TOKEN_SET: ${{ secrets.VERCEL_TOKEN != '' }}
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.VERCEL_TOKEN_SET == 'true'
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
