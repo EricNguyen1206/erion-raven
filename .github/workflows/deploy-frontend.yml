@@ -34,11 +34,11 @@ jobs:
 
       - name: Build shared packages
         run: |
-          pnpm --filter @notify/types build
-          pnpm --filter @notify/shared build
+          pnpm --filter @raven/types build
+          pnpm --filter @raven/shared build
 
       - name: Build frontend
-        run: pnpm --filter @notify/web build
+        run: pnpm --filter @raven/web build
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25

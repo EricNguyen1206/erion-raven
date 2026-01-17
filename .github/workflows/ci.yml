@@ -31,30 +31,30 @@ jobs:
 
       - name: Build shared packages
         run: |
-          pnpm --filter @notify/types build
-          pnpm --filter @notify/validators build
-          pnpm --filter @notify/shared build
+          pnpm --filter @raven/types build
+          pnpm --filter @raven/validators build
+          pnpm --filter @raven/shared build
 
       - name: Lint frontend
-        run: pnpm --filter @notify/web lint
+        run: pnpm --filter @raven/web lint
         continue-on-error: true
 
       - name: Lint backend
-        run: pnpm --filter @notify/api lint
+        run: pnpm --filter @raven/api lint
         continue-on-error: true
 
       - name: Type check frontend
-        run: pnpm --filter @notify/web exec tsc --noEmit
+        run: pnpm --filter @raven/web exec tsc --noEmit
 
       - name: Type check backend
-        run: pnpm --filter @notify/api exec tsc --noEmit
+        run: pnpm --filter @raven/api exec tsc --noEmit
 
       - name: Test frontend
-        run: pnpm --filter @notify/web test
+        run: pnpm --filter @raven/web test
         continue-on-error: true
 
       - name: Test backend
-        run: pnpm --filter @notify/api test
+        run: pnpm --filter @raven/api test
         continue-on-error: true
 
   build:
@@ -82,15 +82,15 @@ jobs:
 
       - name: Build shared packages
         run: |
-          pnpm --filter @notify/types build
-          pnpm --filter @notify/validators build
-          pnpm --filter @notify/shared build
+          pnpm --filter @raven/types build
+          pnpm --filter @raven/validators build
+          pnpm --filter @raven/shared build
 
       - name: Build frontend
-        run: pnpm --filter @notify/web build
+        run: pnpm --filter @raven/web build
 
       - name: Build backend
-        run: pnpm --filter @notify/api build
+        run: pnpm --filter @raven/api build
 
       - name: Upload frontend build artifacts
         uses: actions/upload-artifact@v3

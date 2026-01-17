@@ -32,13 +32,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build types package
-        run: pnpm --filter @notify/types build
+        run: pnpm --filter @raven/types build
 
       - name: Build validators package
-        run: pnpm --filter @notify/validators build
+        run: pnpm --filter @raven/validators build
 
       - name: Build shared package
-        run: pnpm --filter @notify/shared build
+        run: pnpm --filter @raven/shared build
 
       - name: Upload shared packages
         uses: actions/upload-artifact@v3
@@ -80,17 +80,17 @@ jobs:
           path: .
 
       - name: Lint frontend
-        run: pnpm --filter @notify/web lint
+        run: pnpm --filter @raven/web lint
 
       - name: Type check frontend
-        run: pnpm --filter @notify/web exec tsc --noEmit
+        run: pnpm --filter @raven/web exec tsc --noEmit
 
       - name: Test frontend
-        run: pnpm --filter @notify/web test
+        run: pnpm --filter @raven/web test
         continue-on-error: true
 
       - name: Build frontend
-        run: pnpm --filter @notify/web build
+        run: pnpm --filter @raven/web build
 
   test-backend:
     name: Test Backend
@@ -122,17 +122,17 @@ jobs:
           path: .
 
       - name: Lint backend
-        run: pnpm --filter @notify/api lint
+        run: pnpm --filter @raven/api lint
 
       - name: Type check backend
-        run: pnpm --filter @notify/api exec tsc --noEmit
+        run: pnpm --filter @raven/api exec tsc --noEmit
 
       - name: Test backend
-        run: pnpm --filter @notify/api test
+        run: pnpm --filter @raven/api test
         continue-on-error: true
 
       - name: Build backend
-        run: pnpm --filter @notify/api build
+        run: pnpm --filter @raven/api build
 
   deploy-frontend:
     name: Deploy Frontend to Vercel
@@ -160,8 +160,8 @@ jobs:
 
       - name: Build shared packages
         run: |
-          pnpm --filter @notify/types build
-          pnpm --filter @notify/shared build
+          pnpm --filter @raven/types build
+          pnpm --filter @raven/shared build
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -199,9 +199,9 @@ jobs:
 
       - name: Build shared packages
         run: |
-          pnpm --filter @notify/types build
-          pnpm --filter @notify/validators build
-          pnpm --filter @notify/shared build
+          pnpm --filter @raven/types build
+          pnpm --filter @raven/validators build
+          pnpm --filter @raven/shared build
 
       - name: Deploy to Render
         uses: johnbeynon/render-deploy@v0.0.8
