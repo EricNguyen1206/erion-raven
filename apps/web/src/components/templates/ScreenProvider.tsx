@@ -8,7 +8,7 @@ type Props = {
 };
 
 const ScreenProvider = ({ children }: Props) => {
-  const screen = useScreenWidth();
+  // const screen = useScreenWidth(); // Currently unused
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
