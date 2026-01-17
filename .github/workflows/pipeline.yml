@@ -161,6 +161,7 @@ jobs:
       - name: Build shared packages
         run: |
           pnpm --filter @raven/types build
+          pnpm --filter @raven/validators build
           pnpm --filter @raven/shared build
 
       - name: Deploy to Vercel
