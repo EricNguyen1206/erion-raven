@@ -1,9 +1,10 @@
 // Only use module-alias in production (when running from dist)
 // In development, tsconfig-paths/register handles path aliases
+/* eslint-disable @typescript-eslint/no-var-requires */
 if (process.env['NODE_ENV'] === 'production') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('module-alias/register');
 }
+/* eslint-enable @typescript-eslint/no-var-requires */
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';

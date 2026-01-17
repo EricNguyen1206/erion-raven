@@ -1,6 +1,5 @@
 "use client";
 
-import { useScreenWidth } from "@/hooks/useScreenWidth";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -8,7 +7,6 @@ type Props = {
 };
 
 const ScreenProvider = ({ children }: Props) => {
-  // const screen = useScreenWidth(); // Currently unused
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
