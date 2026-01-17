@@ -14,6 +14,7 @@ import RegisterPage from '@/pages/RegisterPage'
 import HomePage from '@/pages/HomePage'
 import ConversationPage from '@/pages/ConversationPage'
 import ContactsPage from '@/pages/ContactsPage'
+import SettingsPage from '@/pages/SettingsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 // Layouts
@@ -52,6 +53,7 @@ function App() {
                   <Route path="/messages" element={<HomePage />} />
                   <Route path="/messages/:id" element={<ConversationPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
                 </Route>
               </Route>
             </Route>

@@ -73,3 +73,9 @@ build/
 *.backup
 *.old
 node_modules
+
+# --- BMAD & AI Context Files ---
+.agent/
+.claude/
+_bmad/
+_bmad-output/

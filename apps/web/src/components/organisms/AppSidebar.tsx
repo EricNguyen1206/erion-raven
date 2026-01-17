@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Home, Users } from "lucide-react";
+import { Home, Users, Settings } from "lucide-react";
 import { useSidebarActions } from "@/hooks/useSidebarActions";
 import { SidebarConversations } from "../molecules/SidebarConversations";
 import SidebarDirectMessages from "../molecules/SidebarDirectMessages";
@@ -78,6 +78,18 @@ export function AppSidebar() {
                   <Link to="/contacts" className="flex items-center gap-3">
                     <Users className="w-[18px] h-[18px] font-light text-sidebar-foreground" />
                     <span className="font-light text-sidebar-foreground text-sm">Contacts</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Settings"
+                  className="h-9 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/5 data-[active=true]:bg-sidebar-accent/10"
+                >
+                  <Link to="/settings" className="flex items-center gap-3">
+                    <Settings className="w-[18px] h-[18px] font-light text-sidebar-foreground" />
+                    <span className="font-light text-sidebar-foreground text-sm">Settings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

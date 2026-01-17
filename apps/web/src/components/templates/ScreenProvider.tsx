@@ -20,14 +20,8 @@ const ScreenProvider = ({ children }: Props) => {
     return <>{children}</>;
   }
 
-  if (screen < 700) {
-    return (
-      <div className="w-full h-screen flex justify-center items-center bg-primary-purple">
-        <p className="text-xl font-bold">App is not available on mobile</p>
-      </div>
-    );
-  }
-
+  // Mobile-first: App now works on all screen sizes!
+  // Removed "not available on mobile" block - we're fully responsive now 🎉
   return <>{children}</>;
 };
 

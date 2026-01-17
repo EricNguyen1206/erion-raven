@@ -5,6 +5,7 @@ import MessageInput from "@/components/organisms/MessageInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatPage } from "@/hooks/useChatPage";
 import { ConnectionState } from "@/store/useSocketStore";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 
 const ConversationPage = () => {
   const {
@@ -23,6 +24,8 @@ const ConversationPage = () => {
     viewportRef,
   } = useChatPage();
 
+  const keyboardHeight = useKeyboardHeight();
+
   return (
     <div className="w-full flex-1 min-h-0 relative flex flex-col overflow-hidden bg-background">
       <ChatHeader
@@ -36,8 +39,15 @@ const ConversationPage = () => {
         {...(sessionUser?.id !== undefined && { currentUserId: sessionUser.id })}
       />
 
-      {/* ScrollArea with top padding to offset the fixed header (64px) */}
-      <ScrollArea ref={containerRef} viewportRef={viewportRef} className="flex-1 min-h-0 pt-16 px-4">
+      {/* ScrollArea with dynamic padding for keyboard + tab bar */}
+      <ScrollArea
+        ref={containerRef}
+        viewportRef={viewportRef}
+        className="flex-1 min-h-0 pt-16 px-4 transition-all duration-300 ease-out"
+        style={{
+          paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 80}px` : '4rem'
+        }}
+      >
         {chatsLoading ? (
           <MessagesSkeleton isGroup={true} />
         ) : (

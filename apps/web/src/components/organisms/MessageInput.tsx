@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { Button } from "../ui/button";
 import { useUpload } from "@/hooks/useUpload";
 import { toast } from "react-toastify";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 
 interface MessageInputProps {
   onSendMessage: (message: string, url?: string, fileName?: string) => void;
@@ -18,6 +19,7 @@ export default function MessageInput({
   const messageRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, isUploading } = useUpload();
+  const keyboardHeight = useKeyboardHeight();
   //   const [hasTyped, setHasTyped] = useState(false);
 
   const handleSend = () => {
@@ -103,7 +105,12 @@ export default function MessageInput({
   };
 
   return (
-    <div className="inset-x-0 bottom-0 w-full h-16 px-4 py-2 bg-background border-t border-border/30">
+    <div
+      className="fixed inset-x-0 bottom-0 w-full h-16 px-4 py-2 bg-background border-t border-border/30 transition-transform duration-300 ease-out md:relative md:transform-none"
+      style={{
+        transform: keyboardHeight > 0 ? `translateY(-${keyboardHeight}px)` : 'translateY(0)',
+      }}
+    >
       {/* Hidden file input */}
       <input
         type="file"
@@ -126,11 +133,11 @@ export default function MessageInput({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`h-8 w-8 shrink-0 rounded-lg hover:bg-accent/5 transition-all duration-200 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
+                  className={`h-11 w-11 shrink-0 rounded-lg hover:bg-accent/5 transition-all duration-200 ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
                   onClick={handleFileSelect}
                   disabled={disabled || !isConnected || isUploading}
                 >
-                  <Paperclip className="w-[16px] h-[16px]" />
+                  <Paperclip className="w-5 h-5" />
                 </Button>
 
                 <input
@@ -146,9 +153,9 @@ export default function MessageInput({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 rounded-lg hover:bg-accent/5 transition-all duration-200 cursor-not-allowed opacity-40"
+                  className="h-11 w-11 shrink-0 rounded-lg hover:bg-accent/5 transition-all duration-200 cursor-not-allowed opacity-40"
                 >
-                  <Smile className="w-[16px] h-[16px]" />
+                  <Smile className="w-5 h-5" />
                 </Button>
               </div>
             </div>
