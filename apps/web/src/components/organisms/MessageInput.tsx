@@ -1,9 +1,10 @@
 import { Paperclip, Send, Smile } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { useUpload } from "@/hooks/useUpload";
 import { toast } from "react-toastify";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
+import { cn } from "@/lib/utils";
 
 interface MessageInputProps {
   onSendMessage: (message: string, url?: string, fileName?: string) => void;
@@ -16,19 +17,15 @@ export default function MessageInput({
   isConnected = true,
   disabled = false,
 }: MessageInputProps) {
-  const messageRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, isUploading } = useUpload();
   const keyboardHeight = useKeyboardHeight();
-  //   const [hasTyped, setHasTyped] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleSend = () => {
-    const messageValue = messageRef.current?.value || "";
-    if (messageValue.trim() && isConnected && !disabled) {
-      onSendMessage(messageValue.trim());
-      if (messageRef.current) {
-        messageRef.current.value = "";
-      }
+    if (message.trim() && isConnected && !disabled) {
+      onSendMessage(message.trim());
+      setMessage("");
       //   setHasTyped(false);
 
       // // Stop typing indicator when sending
@@ -45,17 +42,8 @@ export default function MessageInput({
     }
   };
 
-  const handleInputChange = (_e: React.ChangeEvent<HTMLInputElement>) => {
-    // const newMessage = e.target.value;
-
-    // // Handle typing indicators
-    // if (newMessage.length > 0 && !hasTyped && onStartTyping) {
-    //   onStartTyping();
-    //   setHasTyped(true);
-    // } else if (newMessage.length === 0 && hasTyped && onStopTyping) {
-    //   onStopTyping();
-    //   setHasTyped(false);
-    // }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
   };
 
   const handleFileSelect = () => {
@@ -100,15 +88,13 @@ export default function MessageInput({
   //     }
   //   }, [hasTyped, onStopTyping]);
 
-  const getMessageValue = () => {
-    return messageRef.current?.value || "";
-  };
-
   return (
     <div
-      className="fixed inset-x-0 bottom-0 w-full h-16 px-4 py-2 bg-background border-t border-border/30 transition-transform duration-300 ease-out md:relative md:transform-none"
+      className={cn(
+        "fixed inset-x-0 bottom-16 md:bottom-0 w-full h-16 px-4 py-2 bg-background border-t border-border/30 transition-transform duration-300 ease-out md:relative md:transform-none z-40",
+      )}
       style={{
-        transform: keyboardHeight > 0 ? `translateY(-${keyboardHeight}px)` : 'translateY(0)',
+        transform: keyboardHeight > 0 ? `translateY(-${keyboardHeight - 64}px)` : 'translateY(0)',
       }}
     >
       {/* Hidden file input */}
@@ -142,7 +128,7 @@ export default function MessageInput({
 
                 <input
                   type="text"
-                  ref={messageRef}
+                  value={message}
                   placeholder={disabled ? "Disconnected" : !isConnected ? "Connecting..." : isUploading ? "Uploading..." : "Type a message"}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
@@ -162,9 +148,9 @@ export default function MessageInput({
 
             <Button
               onClick={handleSend}
-              disabled={(!getMessageValue().trim() && !isUploading) || disabled || !isConnected}
+              disabled={(!message.trim() && !isUploading) || disabled || !isConnected}
               size="icon"
-              className="h-12 w-12 shrink-0 bg-primary hover:bg-primary/90 disabled:bg-muted/30 disabled:opacity-40 rounded-xl transition-all duration-200 shadow-none"
+              className="h-12 w-12 shrink-0 bg-primary hover:bg-primary/90 disabled:bg-primary/20 disabled:text-primary/30 rounded-xl transition-all duration-200 shadow-none"
             >
               <Send className="w-[16px] h-[16px]" />
             </Button>

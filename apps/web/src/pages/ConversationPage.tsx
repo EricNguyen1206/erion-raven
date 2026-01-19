@@ -45,7 +45,7 @@ const ConversationPage = () => {
         viewportRef={viewportRef}
         className="flex-1 min-h-0 pt-16 px-4 transition-all duration-300 ease-out"
         style={{
-          paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 80}px` : '4rem'
+          paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 80}px` : (window.innerWidth < 768 ? '4rem' : '1rem')
         }}
       >
         {chatsLoading ? (
