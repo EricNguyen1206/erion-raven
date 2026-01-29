@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('https');
 
 const OLLAMA_API_URL = 'https://ollama.com/api/chat';
-const MODEL = 'qwen:32b';
+const MODEL = process.env.OLLAMA_MODEL || 'kimi-k2.5:cloud';
 
 async function callOllamaAPI(messages) {
   const apiKey = process.env.OLLAMA_API_KEY;
@@ -16,6 +16,9 @@ async function callOllamaAPI(messages) {
     messages: messages,
     stream: false
   });
+
+  console.error(`[DEBUG] Using model: ${MODEL}`);
+  console.error(`[DEBUG] API URL: ${OLLAMA_API_URL}`);
 
   return new Promise((resolve, reject) => {
     const url = new URL(OLLAMA_API_URL);
@@ -34,11 +37,20 @@ async function callOllamaAPI(messages) {
     const req = https.request(options, (res) => {
       let data = '';
       
+      console.error(`[DEBUG] Response status: ${res.statusCode}`);
+      
       res.on('data', (chunk) => {
         data += chunk;
       });
       
       res.on('end', () => {
+        console.error(`[DEBUG] Response data: ${data.substring(0, 500)}`);
+        
+        if (res.statusCode !== 200) {
+          reject(new Error(`API returned status ${res.statusCode}: ${data}`));
+          return;
+        }
+        
         try {
           const parsed = JSON.parse(data);
           if (parsed.message && parsed.message.content) {
@@ -46,10 +58,10 @@ async function callOllamaAPI(messages) {
           } else if (parsed.error) {
             reject(new Error(`Ollama API error: ${parsed.error}`));
           } else {
-            resolve(data);
+            reject(new Error(`Unexpected response format: ${data.substring(0, 200)}`));
           }
         } catch (e) {
-          reject(new Error(`Failed to parse response: ${e.message}`));
+          reject(new Error(`Failed to parse response: ${e.message}. Raw: ${data.substring(0, 200)}`));
         }
       });
     });
