@@ -34,6 +34,14 @@ Complete pipeline that:
 - Tests frontend and backend in parallel
 - Deploys both apps if tests pass
 
+### 5. AI PR Review (`.github/workflows/pr-review.yml`)
+
+Automated code review powered by Ollama Cloud:
+- Triggers on new PRs and updates
+- Analyzes code changes using AI (qwen:32b model)
+- Posts review comments automatically
+- Checks for bugs, security issues, and best practices
+
 ## Required Secrets
 
 ### For Vercel Deployment
@@ -61,6 +69,13 @@ Add these secrets in GitHub repository settings (Settings → Secrets and variab
 2. **`RENDER_SERVICE_ID`**
    - Get from: Your Render service → Settings → Info
    - Copy the "Service ID"
+
+### For AI PR Review (Ollama)
+
+1. **`OLLAMA_API_KEY`**
+   - Get from: [Ollama Settings → API Keys](https://ollama.com/settings/keys)
+   - Create a new API key
+   - Required for automated PR code review
 
 ## Setup Instructions
 
