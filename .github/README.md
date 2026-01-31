@@ -38,9 +38,14 @@ Complete pipeline that:
 
 Automated code review powered by Ollama Cloud:
 - Triggers on new PRs and updates
-- Analyzes code changes using AI (qwen:32b model)
-- Posts review comments automatically
+- Analyzes code changes using AI (kimi-k2.5:cloud model)
+- **Creates inline review comments** on specific lines with issues
+- Each comment includes:
+  - **Priority** (🔴 HIGH / 🟡 MEDIUM / 🟢 LOW)
+  - **Review**: Description of the issue
+  - **Suggestion**: How to fix or improve
 - Checks for bugs, security issues, and best practices
+
 
 ## Required Secrets
 
