@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,27 +21,26 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
+
+      - name: Install tsx
+        run: npm install -g tsx
 
       - name: Get PR diff
-        id: diff
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh pr diff ${{ github.event.pull_request.number }} > pr_diff.txt
           echo "Retrieved PR diff for PR #${{ github.event.pull_request.number }}"
+          echo "Diff size: $(wc -c < pr_diff.txt) bytes"
 
-      - name: Review code with Ollama
-        id: review
+      - name: Review code with AI
         env:
           OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          node .github/scripts/review-pr.js > review_output.md
-
-      - name: Post review comment
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file review_output.md
+        run: tsx .github/scripts/review-pr.ts --diff=pr_diff.txt
