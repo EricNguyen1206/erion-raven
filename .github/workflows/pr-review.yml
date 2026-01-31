@@ -43,6 +43,4 @@ jobs:
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          cd .github/scripts
-          tsx review-pr.ts
+        run: tsx .github/scripts/review-pr.ts --diff=pr_diff.txt
