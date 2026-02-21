@@ -9,6 +9,8 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;
+  llmProviders?: Map<string, string>;
+  defaultModel?: string;
   id: string;
 }
 
@@ -19,6 +21,8 @@ const UserSchema: Schema<IUser> = new Schema(
     password: { type: String, required: false },
     avatar: { type: String },
     deletedAt: { type: Date, default: null },
+    llmProviders: { type: Map, of: String },
+    defaultModel: { type: String },
   },
   {
     timestamps: true,
