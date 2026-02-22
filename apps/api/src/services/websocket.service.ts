@@ -2,7 +2,6 @@ import { Socket } from 'socket.io';
 import { RedisService } from './redis.service';
 import { MessageService } from './message.service';
 import { ConversationService } from './conversation.service';
-import { Participant } from '@/models/Participant';
 import {
   SocketEvent,
   MessageDto,
@@ -319,6 +318,11 @@ export class WebSocketService {
         throw new Error('Message must have text, url, or fileName');
       }
 
+      const conversation = await this.conversationService.findById(conversationId);
+      if (!conversation) {
+        throw new Error('Conversation not found');
+      }
+
       // Prepare message data
       const messageData: {
         conversationId: string;
@@ -336,7 +340,7 @@ export class WebSocketService {
       // Save message to database
       const savedMessage = await this.messageService.createMessage(senderId, messageData);
 
-      // Create message DTO for broadcasting (using centralized types)
+      // Create message DTO for broadcasting
       const messageDto: MessageDto = createMessageDto(
         savedMessage.id,
         conversationId,
@@ -349,34 +353,13 @@ export class WebSocketService {
         savedMessage.createdAt
       );
 
-      // Increment unread count for all participants except sender
-      await Participant.updateMany(
-        {
-          conversationId,
-          userId: { $ne: senderId },
-          deletedAt: null
-        },
-        {
-          $inc: { unreadCount: 1 }
-        }
-      );
+      // In a pure AI chat context, we just broadcast to the owner if they are online in the room
+      const ownerId = conversation.ownerId.toString();
 
-      // Get all participants to notify (even if not currently in the room)
-      const participants = await Participant.find({
-        conversationId,
-        deletedAt: null
-      }).select('userId');
-
-      // Broadcast to all online participants
-      for (const participant of participants) {
-        const userId = participant.userId.toString();
-
-        // Skip emitting back to sender in this loop if handled elsewhere, 
-        // OR emit to everyone including sender for consistency (sender usually handles optimistic UI).
-        // Let's emit to everyone online so they get the event.
-
-        if (this.isOnline(userId)) {
-          this.emitToUser(userId, SocketEvent.NEW_MESSAGE, messageDto);
+      // If the sender is not the owner (i.e. it's the AI responding), send to the owner
+      if (senderId !== ownerId) {
+        if (this.isOnline(ownerId)) {
+          this.emitToUser(ownerId, SocketEvent.NEW_MESSAGE, messageDto);
         }
       }
 
@@ -384,12 +367,10 @@ export class WebSocketService {
         conversationId,
         senderId,
         messageId: savedMessage.id,
-        recipientCount: participants.length
       });
 
       // Handle AI response if applicable
-      const conversation = await this.conversationService.findById(conversationId);
-      if (conversation && (conversation as any).isAiAgent) {
+      if ((conversation as any).isAiAgent) {
         const { User } = await import('@/models/User');
         let aiUser = await User.findOne({ email: 'bot@openclaw.local' });
         if (!aiUser || senderId !== aiUser.id) {
@@ -474,13 +455,15 @@ export class WebSocketService {
       const { llmService } = await import('./llm.service');
       const aiResponseText = await llmService.generateResponse(systemPrompt, history, model);
 
-      const { User } = await import('@/models/User');
-      let aiUser = await User.findOne({ email: 'bot@openclaw.local' });
+      const { prisma } = await import('@/lib/prisma');
+      let aiUser = await prisma.user.findFirst({ where: { email: 'bot@openclaw.local' } });
       if (!aiUser) {
-        aiUser = await User.create({
-          username: 'ZeroClaw',
-          email: 'bot@openclaw.local',
-          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ZeroClaw',
+        aiUser = await prisma.user.create({
+          data: {
+            username: 'ZeroClaw',
+            email: 'bot@openclaw.local',
+            avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ZeroClaw',
+          }
         });
       }
 

@@ -1,20 +1,19 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { User, IUser } from "@/models/User";
-import { Session } from "@/models/Session";
 import { config } from "@/config/config";
 import { SignupRequestDto, SigninRequestDto } from "@raven/validators";
 import { UserDto } from "@raven/types";
 import { OAuth2Client } from 'google-auth-library';
 import { googleConfig } from '@/config/google';
 import { logger } from "@/utils/logger";
+import { prisma } from "@/lib/prisma";
 
 export class AuthService {
   public async signup(data: SignupRequestDto): Promise<UserDto> {
     try {
       // Check if user already exists
-      const existingUser = await User.findOne({ email: data.email });
+      const existingUser = await prisma.user.findFirst({ where: { email: data.email } });
 
       if (existingUser) {
         throw new Error("Email already exists");
@@ -24,13 +23,13 @@ export class AuthService {
       const hashedPassword = await bcrypt.hash(data.password, 12);
 
       // Create user
-      const user = new User({
-        username: data.username,
-        email: data.email,
-        password: hashedPassword,
+      const savedUser = await prisma.user.create({
+        data: {
+          username: data.username,
+          email: data.email,
+          password: hashedPassword,
+        },
       });
-
-      const savedUser = await user.save();
 
       logger.info("User signed up successfully", { userId: savedUser.id, email: savedUser.email });
 
@@ -40,7 +39,7 @@ export class AuthService {
         email: savedUser.email,
         createdAt: savedUser.createdAt,
       };
-      if (savedUser.avatar !== undefined) {
+      if (savedUser.avatar !== null) {
         response.avatar = savedUser.avatar;
       }
       return response;
@@ -55,7 +54,7 @@ export class AuthService {
   ): Promise<{ user: UserDto; accessToken: string; refreshToken: string }> {
     try {
       // Find user by email
-      const user = await User.findOne({ email: data.email });
+      const user = await prisma.user.findFirst({ where: { email: data.email } });
 
       if (!user) {
         throw new Error("Invalid credentials");
@@ -87,13 +86,13 @@ export class AuthService {
       expiresAt.setDate(expiresAt.getDate() + 30);
 
       // Create session record
-      const session = new Session({
-        userId: user._id,
-        refreshToken,
-        expiresAt,
+      await prisma.session.create({
+        data: {
+          userId: user.id,
+          refreshToken,
+          expiresAt,
+        }
       });
-
-      await session.save();
 
       logger.info("User signed in successfully", { userId: user.id, email: user.email });
 
@@ -103,7 +102,7 @@ export class AuthService {
         email: user.email,
         createdAt: user.createdAt,
       };
-      if (user.avatar !== undefined) {
+      if (user.avatar !== null) {
         userResponse.avatar = user.avatar;
       }
 
@@ -121,19 +120,22 @@ export class AuthService {
   public async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
     try {
       // Find session by refresh token
-      const session = await Session.findOne({ refreshToken }).populate<{ user: IUser }>("userId");
+      const session = await prisma.session.findFirst({
+        where: { refreshToken },
+        include: { user: true },
+      });
 
       if (!session) {
         throw new Error("Invalid refresh token");
       }
 
       // Check if session is expired
-      if (session.isExpired()) {
+      if (session.expiresAt.getTime() < new Date().getTime()) {
         throw new Error("Refresh token expired");
       }
 
       // Get user from populated field
-      const user = session.userId as unknown as IUser;
+      const user = session.user;
       if (!user) {
         throw new Error("User not found");
       }
@@ -159,10 +161,12 @@ export class AuthService {
   public async signout(refreshToken: string, userId: string): Promise<void> {
     try {
       // Find and delete session
-      const session = await Session.findOne({ refreshToken, userId });
+      const session = await prisma.session.findFirst({
+        where: { refreshToken, userId }
+      });
 
       if (session) {
-        await Session.deleteOne({ _id: session._id });
+        await prisma.session.delete({ where: { id: session.id } });
         logger.info("User signed out successfully", { userId, sessionId: session.id });
       }
     } catch (error) {
@@ -174,7 +178,7 @@ export class AuthService {
   public async logoutAll(userId: string): Promise<void> {
     try {
       // Delete all sessions for user
-      await Session.deleteMany({ userId });
+      await prisma.session.deleteMany({ where: { userId } });
 
       logger.info("All sessions logged out", { userId });
     } catch (error) {
@@ -212,32 +216,35 @@ export class AuthService {
         throw new Error("Google account must have a verified email");
       }
 
-      let user = await User.findOne({ email: payload.email });
+      let user = await prisma.user.findFirst({ where: { email: payload.email } });
 
       if (!user) {
         // Create new user if not exists
         let username = payload.name || payload.email.split('@')[0];
 
         // Ensure username uniqueness
-        const existingUsername = await User.findOne({ username });
+        const existingUsername = await prisma.user.findFirst({ where: { username } });
         if (existingUsername) {
           username = `${username}${Math.floor(1000 + Math.random() * 9000)}`;
         }
 
-        user = new User({
-          username,
-          email: payload.email,
-          avatar: payload.picture,
-          // No password for Google users
+        user = await prisma.user.create({
+          data: {
+            username,
+            email: payload.email,
+            avatar: payload.picture,
+            // No password for Google users
+          }
         });
 
-        await user.save();
         logger.info("New user created via Google Sign-In", { userId: user.id, email: user.email });
       } else {
         // Update avatar if not present or changed (optional policy)
         if (payload.picture && user.avatar !== payload.picture) {
-          user.avatar = payload.picture;
-          await user.save();
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { avatar: payload.picture }
+          });
         }
       }
 
@@ -253,13 +260,14 @@ export class AuthService {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
 
-      const session = new Session({
-        userId: user._id,
-        refreshToken,
-        expiresAt,
+      await prisma.session.create({
+        data: {
+          userId: user.id,
+          refreshToken,
+          expiresAt,
+        }
       });
 
-      await session.save();
       logger.info("User signed in via Google", { userId: user.id });
 
       const userResponse: UserDto = {
