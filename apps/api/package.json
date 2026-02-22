@@ -10,7 +10,8 @@
     "test": "jest",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate-db": "ts-node scripts/migrate-db.ts"
   },
   "keywords": [
     "chat",
@@ -79,6 +80,7 @@
     "@types/node": "^20.10.5",
     "@types/supertest": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.8",
+    "mongodb": "^7.1.0",
     "nodemon": "^3.0.2",
     "prisma": "^7.4.1",
     "supertest": "^7.2.2",
