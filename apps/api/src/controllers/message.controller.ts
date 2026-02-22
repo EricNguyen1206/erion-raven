@@ -36,13 +36,7 @@ export class MessageController {
       }
 
       const beforeStr = before ? (before as string) : undefined;
-      if (beforeStr && beforeStr.length !== 24) {
-        res.status(400).json({
-          success: false,
-          message: "Before must be a valid MongoDB ObjectId",
-        });
-        return;
-      }
+      // Removed MongoDB ObjectId validation since we use CUIDs now
 
       const messages = await this.messageService.getConversationMessages(conversationId, limitNum, beforeStr);
 
@@ -118,36 +112,7 @@ export class MessageController {
     }
   }
 
-  // Get friend messages (direct messages)
-  async getFriendMessages(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = (req as any).user.id;
-      const { friendId } = req.params;
 
-      if (!friendId) {
-        res.status(400).json({
-          success: false,
-          message: "Friend ID is required",
-        });
-        return;
-      }
-
-      logger.info("Get friend messages", { userId, friendId });
-
-      const messages = await this.messageService.getFriendMessages(userId, friendId);
-
-      res.status(200).json({
-        success: true,
-        data: messages,
-      });
-    } catch (error) {
-      logger.error("Get friend messages error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  }
 
   // Get message by ID
   async getMessageById(req: Request, res: Response): Promise<void> {
