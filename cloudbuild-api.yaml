@@ -1,0 +1,63 @@
+# ============================================================
+# cloudbuild-api.yaml
+# Build Docker image và deploy lên Cloud Run
+# Triggered từ GitHub Actions khi tests pass trên main
+#
+# GCP Config:
+#   Project:    nanobot-487408
+#   Region:     asia-southeast1
+#   Registry:   asia-southeast1-docker.pkg.dev/nanobot-487408/erion-repo
+#   Service:    api-service
+# ============================================================
+
+substitutions:
+  _CLOUD_RUN_SERVICE: 'api-service'
+  _CLOUD_RUN_REGION: 'asia-southeast1'
+  _IMAGE: 'asia-southeast1-docker.pkg.dev/nanobot-487408/erion-repo/api'
+
+steps:
+  # Step 1: Build Docker image từ monorepo root
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    args:
+      - 'build'
+      - '-t'
+      - '$_IMAGE:$COMMIT_SHA'
+      - '-t'
+      - '$_IMAGE:latest'
+      - '-f'
+      - 'apps/api/Dockerfile'
+      - '.'
+
+  # Step 2: Push image lên Artifact Registry (cả 2 tags)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push'
+    waitFor: ['build']
+    args:
+      - 'push'
+      - '--all-tags'
+      - '$_IMAGE'
+
+  # Step 3: Deploy revision mới lên Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    waitFor: ['push']
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_CLOUD_RUN_SERVICE'
+      - '--image'
+      - '$_IMAGE:$COMMIT_SHA'
+      - '--region'
+      - '$_CLOUD_RUN_REGION'
+      - '--platform'
+      - 'managed'
+      - '--quiet'
+
+images:
+  - '$_IMAGE:$COMMIT_SHA'
+  - '$_IMAGE:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
