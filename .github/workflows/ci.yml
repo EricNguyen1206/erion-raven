@@ -105,11 +105,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Decode GCP credentials
+        run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY_BASE64 }}" | base64 --decode > /tmp/gcp-key.json
+
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY_BASE64 }}
+          credentials_file: /tmp/gcp-key.json
           token_format: access_token
 
       - name: Login to Artifact Registry
