@@ -1,46 +1,27 @@
 "use client";
 
-// External libraries
 import { useTransition } from "react";
-
-// Third-party utilities
-// (none)
-
-// Types
-import { Provider } from "@supabase/supabase-js";
-
-// Icons
 import { Github } from "lucide-react";
 
-// Helpers, local modules
-// (none)
-
 export default function GithubLoginButton() {
-  // State/hooks
   const [isPending, startTransition] = useTransition();
 
-  // Event Handlers
-  const handleClickLoginButton = (_provider: Provider) => {
-    startTransition(async () => {
-      // const { errorMessage, url } = await loginAction(provider);
-      // if (!errorMessage && url) {
-      //   router.push(url);
-      // } else {
-      //   toast.error(errorMessage);
-      // }
-      // await handleGithubLogin()
+  const handleClickLoginButton = () => {
+    startTransition(() => {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+      window.location.href = `${apiUrl}/auth/github`;
     });
   };
 
-  // Render
   return (
     <button
-      className="bg-white text-black font-bold rounded-md px-6 py-2 w-[100%] flex items-center gap-3 hover:text-primary-purple"
-      onClick={() => handleClickLoginButton("github")}
+      className="bg-[#24292e] text-white font-bold rounded-md px-6 py-2 w-[100%] flex items-center justify-center gap-3 hover:bg-[#2f363d] transition-colors border border-[#24292e]"
+      onClick={handleClickLoginButton}
       type="button"
+      disabled={isPending}
     >
-      <Github size={25} />
-      <p>{isPending ? "Logging in..." : "Login with GitHub"}</p>
+      <Github size={24} />
+      <span>{isPending ? "Connecting..." : "Sign in with GitHub"}</span>
     </button>
   );
 }
