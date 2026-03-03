@@ -29,13 +29,6 @@ export const authService = {
     return res.data;
   },
 
-  /**
-   * Sign in with Google Credential
-   */
-  googleSignIn: async (credential: string): Promise<ApiResponse<UserDto>> => {
-    const res = await apiClient.post<ApiResponse<UserDto>>('/auth/google', { credential });
-    return res.data;
-  },
 
   /**
    * Sign out - clears httpOnly cookies on backend

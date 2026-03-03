@@ -16,6 +16,7 @@ import ConversationPage from '@/pages/ConversationPage'
 import ContactsPage from '@/pages/ContactsPage'
 import SettingsPage from '@/pages/SettingsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
+import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 
 // Layouts
 import MessagesLayout from '@/components/templates/MessagesLayout'
@@ -44,6 +45,7 @@ function App() {
             <Route element={<GuestGuard />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
             </Route>
 
             {/* Protected routes (auth required) */}

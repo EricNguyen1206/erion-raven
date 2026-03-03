@@ -6,9 +6,15 @@ import { Session } from "@/models/Session";
 import { config } from "@/config/config";
 import { SignupRequestDto, SigninRequestDto } from "@raven/validators";
 import { UserDto } from "@raven/types";
-import { OAuth2Client } from 'google-auth-library';
-import { googleConfig } from '@/config/google';
 import { logger } from "@/utils/logger";
+
+export interface OAuthProfile {
+  provider: 'google' | 'github';
+  providerId: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+}
 
 export class AuthService {
   public async signup(data: SignupRequestDto): Promise<UserDto> {
@@ -70,30 +76,7 @@ export class AuthService {
         throw new Error("Invalid credentials");
       }
 
-      // Generate access token (short-lived)
-      const accessToken = jwt.sign(
-        { userId: user.id, email: user.email, username: user.username },
-        config.jwt.secret,
-        {
-          expiresIn: config.jwt.accessExpire,
-        } as jwt.SignOptions
-      );
-
-      // Generate refresh token (long-lived, 30 days)
-      const refreshToken = crypto.randomBytes(64).toString("hex");
-
-      // Calculate expiration date (30 days from now)
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
-
-      // Create session record
-      const session = new Session({
-        userId: user._id,
-        refreshToken,
-        expiresAt,
-      });
-
-      await session.save();
+      const { accessToken, refreshToken } = await this.createTokens(user);
 
       logger.info("User signed in successfully", { userId: user.id, email: user.email });
 
@@ -183,40 +166,40 @@ export class AuthService {
     }
   }
 
-  // Google Auth Methods
-  public async verifyGoogleToken(token: string): Promise<any> {
-    try {
-      const client = new OAuth2Client(googleConfig.clientId);
-      const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: googleConfig.clientId,
-      });
-      const payload = ticket.getPayload();
+  public async createTokens(user: IUser): Promise<{ accessToken: string; refreshToken: string }> {
+    const accessToken = jwt.sign(
+      { userId: user.id, email: user.email, username: user.username },
+      config.jwt.secret,
+      { expiresIn: config.jwt.accessExpire } as jwt.SignOptions
+    );
 
-      if (!payload) {
-        throw new Error("Invalid Google Token Payload");
-      }
+    const refreshToken = crypto.randomBytes(64).toString("hex");
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
 
-      return payload;
-    } catch (error) {
-      logger.error("Google token verification failed:", error);
-      throw new Error("Invalid Google Token");
-    }
+    const session = new Session({
+      userId: user._id,
+      refreshToken,
+      expiresAt,
+    });
+
+    await session.save();
+
+    return { accessToken, refreshToken };
   }
 
-  public async googleSignin(token: string): Promise<{ user: UserDto; accessToken: string; refreshToken: string }> {
+  // OAuth Provider Link / Create Flow
+  public async findOrCreateOAuthUser(profile: OAuthProfile): Promise<IUser> {
     try {
-      const payload = await this.verifyGoogleToken(token);
-
-      if (!payload.email || !payload.email_verified) {
-        throw new Error("Google account must have a verified email");
-      }
-
-      let user = await User.findOne({ email: payload.email });
+      let user = await User.findOne({ email: profile.email });
 
       if (!user) {
         // Create new user if not exists
-        let username = payload.name || payload.email.split('@')[0];
+        let username = (profile.name ?? profile.email.split('@')[0]) as string;
+        username = username.replace(/[^a-zA-Z0-9_]/g, '');
+        if (!username) {
+          username = `user${Math.floor(1000 + Math.random() * 9000)}`;
+        }
 
         // Ensure username uniqueness
         const existingUsername = await User.findOne({ username });
@@ -226,60 +209,61 @@ export class AuthService {
 
         user = new User({
           username,
-          email: payload.email,
-          avatar: payload.picture,
-          // No password for Google users
+          email: profile.email,
+          avatar: profile.avatar,
+          providers: [{
+            name: profile.provider,
+            providerId: profile.providerId,
+            email: profile.email,
+            avatar: profile.avatar,
+            linkedAt: new Date()
+          }]
         });
 
         await user.save();
-        logger.info("New user created via Google Sign-In", { userId: user.id, email: user.email });
+        logger.info(`New user created via ${profile.provider} OAuth`, { userId: user.id, email: user.email });
+        return user;
+      }
+
+      // User exists - check if provider is already linked
+      const existingProviderIndex = user.providers.findIndex(p => p.name === profile.provider);
+
+      let changed = false;
+      if (existingProviderIndex === -1) {
+        // Link new provider to existing account (Auto-Link by Email)
+        const newProvider: import("@/models/User").IProvider = profile.avatar !== undefined
+          ? { name: profile.provider, providerId: profile.providerId, email: profile.email, avatar: profile.avatar, linkedAt: new Date() }
+          : { name: profile.provider, providerId: profile.providerId, email: profile.email, linkedAt: new Date() };
+        user.providers.push(newProvider);
+        changed = true;
+        logger.info(`Linked ${profile.provider} to existing user`, { userId: user.id, email: user.email });
       } else {
-        // Update avatar if not present or changed (optional policy)
-        if (payload.picture && user.avatar !== payload.picture) {
-          user.avatar = payload.picture;
-          await user.save();
+        // Update provider details if they changed (e.g. avatar)
+        const provider = user.providers[existingProviderIndex];
+        if (provider !== undefined && (provider.avatar !== profile.avatar || provider.email !== profile.email)) {
+          if (profile.avatar !== undefined) {
+            user.providers[existingProviderIndex]!.avatar = profile.avatar;
+          } else if (provider.avatar !== undefined) {
+            user.providers[existingProviderIndex]!.avatar = provider.avatar;
+          }
+          user.providers[existingProviderIndex]!.email = profile.email;
+          changed = true;
         }
       }
 
-      // Generate tokens (Reuse existing logic or refactor)
-      // For now, I'll copy the logic to keep it independent but consistent
-      const accessToken = jwt.sign(
-        { userId: user.id, email: user.email, username: user.username },
-        config.jwt.secret,
-        { expiresIn: config.jwt.accessExpire } as jwt.SignOptions
-      );
-
-      const refreshToken = crypto.randomBytes(64).toString("hex");
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
-
-      const session = new Session({
-        userId: user._id,
-        refreshToken,
-        expiresAt,
-      });
-
-      await session.save();
-      logger.info("User signed in via Google", { userId: user.id });
-
-      const userResponse: UserDto = {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        createdAt: user.createdAt,
-      };
-      if (user.avatar) {
-        userResponse.avatar = user.avatar;
+      // Update main user avatar if missing
+      if (profile.avatar && !user.avatar) {
+        user.avatar = profile.avatar;
+        changed = true;
       }
 
-      return {
-        user: userResponse,
-        accessToken,
-        refreshToken,
-      };
+      if (changed) {
+        await user.save();
+      }
 
+      return user;
     } catch (error) {
-      logger.error("Google signin error:", error);
+      logger.error("OAuth user processing error:", error);
       throw error;
     }
   }

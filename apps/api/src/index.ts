@@ -22,6 +22,7 @@ import { setupSwagger } from '@/config/swagger';
 import { WebSocketController } from '@/controllers/websocket.controller';
 import { logger } from '@/utils/logger';
 import { socketAuthMiddleware } from './middleware/socketAuth.middleware';
+import passport from '@/config/passport';
 
 class App {
   public app: express.Application;
@@ -74,6 +75,9 @@ class App {
     // Body parsing middleware
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+    // Initialize Passport
+    this.app.use(passport.initialize());
 
     this.app.get('/', (_req, res) => {
       res.status(200).json({
