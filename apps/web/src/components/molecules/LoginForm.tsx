@@ -9,6 +9,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { apiUrl } from "@/lib/config";
 
 const LoginForm = () => {
   const [hasError, setHasError] = useState(false);
@@ -54,7 +55,6 @@ const LoginForm = () => {
   };
 
   const handleGoogleLogin = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1";
     window.location.href = `${apiUrl}/auth/google`;
   };
 
