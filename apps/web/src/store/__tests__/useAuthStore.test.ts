@@ -30,6 +30,7 @@ import { useAuthStore } from '../useAuthStore';
 import { authService } from '@/services/authService';
 import { toast } from 'react-toastify';
 import apiClient from '@/lib/axios-client';
+import type { ApiResponse, UserDto } from '@turbo-chat/types';
 
 describe('useAuthStore', () => {
   beforeEach(() => {
@@ -37,10 +38,11 @@ describe('useAuthStore', () => {
     useAuthStore.getState().clearState();
   });
 
-  const mockUser = {
+  const mockUser: UserDto = {
     id: 'user-1',
     username: 'testuser',
     email: 'test@example.com',
+    createdAt: new Date(),
   };
 
   describe('clearState', () => {
@@ -64,7 +66,7 @@ describe('useAuthStore', () => {
 
   describe('signUp', () => {
     it('should call authService.signUp and return true on success', async () => {
-      vi.mocked(authService.signUp).mockResolvedValueOnce({ success: true });
+      vi.mocked(authService.signUp).mockResolvedValueOnce({ success: true, data: mockUser, message: 'Success' });
 
       const result = await useAuthStore.getState().signUp('testuser', 'password123', 'test@example.com');
 
@@ -88,7 +90,7 @@ describe('useAuthStore', () => {
 
     it('should set loading to true during signup and false after', async () => {
       vi.mocked(authService.signUp).mockImplementationOnce(
-        () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 10))
+        () => new Promise<ApiResponse<UserDto>>((resolve) => setTimeout(() => resolve({ success: true, data: mockUser, message: 'Success' }), 10))
       );
 
       const promise = useAuthStore.getState().signUp('testuser', 'password123', 'test@example.com');
@@ -104,10 +106,12 @@ describe('useAuthStore', () => {
       vi.mocked(authService.signIn).mockResolvedValueOnce({
         success: true,
         data: mockUser,
+        message: 'Success',
       });
       vi.mocked(authService.getProfile).mockResolvedValueOnce({
         success: true,
         data: mockUser,
+        message: 'Success',
       });
 
       const result = await useAuthStore.getState().signIn('test@example.com', 'password123');
@@ -125,7 +129,7 @@ describe('useAuthStore', () => {
       vi.mocked(authService.signIn).mockResolvedValueOnce({
         success: false,
         message: 'Invalid credentials',
-      });
+      } as ApiResponse<UserDto>);
 
       const result = await useAuthStore.getState().signIn('test@example.com', 'wrong');
 
@@ -145,8 +149,8 @@ describe('useAuthStore', () => {
     it('should reset checkAuthAttempts on successful sign in', async () => {
       useAuthStore.setState({ checkAuthAttempts: 2 });
 
-      vi.mocked(authService.signIn).mockResolvedValueOnce({ success: true, data: mockUser });
-      vi.mocked(authService.getProfile).mockResolvedValueOnce({ success: true, data: mockUser });
+      vi.mocked(authService.signIn).mockResolvedValueOnce({ success: true, data: mockUser, message: 'Success' });
+      vi.mocked(authService.getProfile).mockResolvedValueOnce({ success: true, data: mockUser, message: 'Success' });
 
       await useAuthStore.getState().signIn('test@example.com', 'password123');
 
@@ -156,7 +160,7 @@ describe('useAuthStore', () => {
 
   describe('signOut', () => {
     it('should call authService.signOut and clear state on success', async () => {
-      vi.mocked(authService.signOut).mockResolvedValueOnce({ success: true });
+      vi.mocked(authService.signOut).mockResolvedValueOnce({ success: true, message: 'Success' });
 
       useAuthStore.setState({ user: mockUser as any, isAuthenticated: true });
 
@@ -186,6 +190,7 @@ describe('useAuthStore', () => {
       vi.mocked(authService.getProfile).mockResolvedValueOnce({
         success: true,
         data: mockUser,
+        message: 'Success',
       });
 
       await useAuthStore.getState().getProfile();
@@ -238,6 +243,7 @@ describe('useAuthStore', () => {
       vi.mocked(authService.checkSession).mockResolvedValueOnce({
         success: true,
         data: mockUser,
+        message: 'Success',
       });
 
       await useAuthStore.getState().checkAuth();
@@ -250,11 +256,8 @@ describe('useAuthStore', () => {
 
     it('should try refresh + getProfile if checkSession fails', async () => {
       vi.mocked(authService.checkSession).mockRejectedValueOnce(new Error('Session expired'));
-      vi.mocked(authService.refresh).mockResolvedValueOnce({ success: true });
-      vi.mocked(authService.getProfile).mockResolvedValueOnce({
-        success: true,
-        data: mockUser,
-      });
+      vi.mocked(authService.refresh).mockResolvedValueOnce({ success: true, message: 'Success', data: '' });
+      vi.mocked(authService.getProfile).mockResolvedValueOnce({ success: true, data: mockUser, message: 'Success' });
 
       await useAuthStore.getState().checkAuth();
 
