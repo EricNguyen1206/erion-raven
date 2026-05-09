@@ -9,6 +9,9 @@ import { FriendService } from "../friend.service";
 import { WebSocketService } from "../websocket.service";
 import { SocketEvent } from "@turbo-chat/types";
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const MockParticipant = require("@/models/Participant");
+
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
@@ -143,8 +146,7 @@ describe("PresenceService", () => {
     it("should set user online and broadcast status change", async () => {
       (friendService.getFriends as jest.Mock).mockResolvedValue([]);
       // Mock Participant dynamic import
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       await service.handleUserConnect("user-1");
 
@@ -156,8 +158,7 @@ describe("PresenceService", () => {
       const friend2 = { friend: { id: "friend-2" } };
       (friendService.getFriends as jest.Mock).mockResolvedValue([friend1, friend2]);
 
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       (redisService.getMultipleUsersOnlineStatus as jest.Mock).mockResolvedValue({
         "friend-1": true,
@@ -184,8 +185,7 @@ describe("PresenceService", () => {
 
     it("should not broadcast when no online friends exist", async () => {
       (friendService.getFriends as jest.Mock).mockResolvedValue([]);
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       await service.handleUserConnect("user-1");
 
@@ -196,8 +196,7 @@ describe("PresenceService", () => {
       const friend1 = { friend: { id: "friend-1" } };
       (friendService.getFriends as jest.Mock).mockResolvedValue([friend1]);
 
-      const { Participant } = require("@/models/Participant");
-      Participant.find
+      MockParticipant.Participant.find
         .mockResolvedValueOnce([{ conversationId: "conv-1" }]) // user's conversations
         .mockResolvedValueOnce([{ userId: { toString: () => "participant-1" } }]); // other participants
 
@@ -219,8 +218,7 @@ describe("PresenceService", () => {
       const friend1 = { friend: { id: "user-2" } };
       (friendService.getFriends as jest.Mock).mockResolvedValue([friend1]);
 
-      const { Participant } = require("@/models/Participant");
-      Participant.find
+      MockParticipant.Participant.find
         .mockResolvedValueOnce([{ conversationId: "conv-1" }])
         .mockResolvedValueOnce([{ userId: { toString: () => "user-2" } }]); // same as friend
 
@@ -256,8 +254,7 @@ describe("PresenceService", () => {
   describe("handleUserDisconnect", () => {
     it("should set user offline and broadcast status change", async () => {
       (friendService.getFriends as jest.Mock).mockResolvedValue([]);
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       await service.handleUserDisconnect("user-1");
 
@@ -268,8 +265,7 @@ describe("PresenceService", () => {
       const friend1 = { friend: { id: "friend-1" } };
       (friendService.getFriends as jest.Mock).mockResolvedValue([friend1]);
 
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       (redisService.getMultipleUsersOnlineStatus as jest.Mock).mockResolvedValue({
         "friend-1": true,
@@ -289,8 +285,7 @@ describe("PresenceService", () => {
 
     it("should not broadcast when no online friends", async () => {
       (friendService.getFriends as jest.Mock).mockResolvedValue([]);
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       await service.handleUserDisconnect("user-1");
 
@@ -314,8 +309,7 @@ describe("PresenceService", () => {
   describe("getFriendsOnlineStatus", () => {
     it("should return empty object when user has no friends or conversations", async () => {
       (friendService.getFriends as jest.Mock).mockResolvedValue([]);
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       const result = await service.getFriendsOnlineStatus("user-1");
 
@@ -327,8 +321,7 @@ describe("PresenceService", () => {
       const friend2 = { friend: { id: "friend-2" } };
       (friendService.getFriends as jest.Mock).mockResolvedValue([friend1, friend2]);
 
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       (redisService.getMultipleUsersOnlineStatus as jest.Mock).mockResolvedValue({
         "friend-1": true,
@@ -348,8 +341,7 @@ describe("PresenceService", () => {
       const invalidFriend = { friend: { id: undefined } };
       (friendService.getFriends as jest.Mock).mockResolvedValue([validFriend, invalidFriend]);
 
-      const { Participant } = require("@/models/Participant");
-      Participant.find.mockResolvedValue([]);
+      MockParticipant.Participant.find.mockResolvedValue([]);
 
       (redisService.getMultipleUsersOnlineStatus as jest.Mock).mockResolvedValue({
         "friend-1": true,

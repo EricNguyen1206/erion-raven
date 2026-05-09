@@ -226,8 +226,7 @@ describe("authenticateToken middleware", () => {
 
   it("should not attempt session sliding when slidingEnabled is false", async () => {
     // Override config for this test
-    const originalConfig = require("@/config/config").config;
-    originalConfig.session.slidingEnabled = false;
+    config.session.slidingEnabled = false;
 
     req.cookies = { accessToken: "valid-token" };
     mockedJwt.verify.mockReturnValue(mockDecoded as any);
@@ -237,9 +236,6 @@ describe("authenticateToken middleware", () => {
 
     expect(mockedSession.findOne).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalled();
-
-    // Restore
-    originalConfig.session.slidingEnabled = true;
   });
 
   // -------------------------------------------------------------------------
