@@ -50,6 +50,17 @@ export class FriendService {
         }
       }
 
+      // Check anti-spam: limit active pending requests from this user
+      const pendingRequestsCount = await FriendRequest.countDocuments({
+        fromUserId,
+        status: FriendRequestStatus.PENDING
+      });
+      
+      const MAX_PENDING_REQUESTS = 50;
+      if (pendingRequestsCount >= MAX_PENDING_REQUESTS) {
+        throw new Error("You have too many pending friend requests. Please wait before sending more.");
+      }
+
       // Create new friend request
       const friendRequest = new FriendRequest({
         fromUserId,
@@ -170,6 +181,31 @@ export class FriendService {
   }
 
   /**
+   * Cancel a pending friend request
+   */
+  async cancelFriendRequest(requestId: string, userId: string): Promise<void> {
+    try {
+      const friendRequest = await FriendRequest.findById(requestId);
+      if (!friendRequest) {
+        throw new Error("Friend request not found");
+      }
+
+      if (friendRequest.fromUserId.toString() !== userId) {
+        throw new Error("You are not authorized to cancel this friend request");
+      }
+
+      if (friendRequest.status !== FriendRequestStatus.PENDING) {
+        throw new Error(`Friend request is already ${friendRequest.status.toLowerCase()}`);
+      }
+
+      await FriendRequest.deleteOne({ _id: requestId });
+    } catch (error: any) {
+      logger.error("Error canceling friend request:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Get all friend requests for a user (sent and received)
    */
   async getFriendRequests(userId: string): Promise<FriendRequestsResponse> {
@@ -257,6 +293,29 @@ export class FriendService {
     } catch (error: any) {
       logger.error("Error checking friendship:", error);
       return false;
+    }
+  }
+
+  /**
+   * Unfriend a user
+   */
+  async unfriend(userId: string, friendId: string): Promise<void> {
+    try {
+      const friendship = await Friends.findOne({
+        $or: [
+          { userId, friendId },
+          { userId: friendId, friendId: userId }
+        ]
+      });
+
+      if (!friendship) {
+        throw new Error("You are not friends with this user");
+      }
+
+      await Friends.deleteOne({ _id: friendship._id });
+    } catch (error: any) {
+      logger.error("Error unfriending:", error);
+      throw error;
     }
   }
 
